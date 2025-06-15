@@ -21,7 +21,7 @@ export const AttractionsProvider = ({ children }) => {
   const fetchAttractions = async () => {
     setIsLoading(true);
     try {
-      const res = await myaxios.get("/attractions");
+      const res = await myaxios.get("/attractions/attractions");
       setAttractions(res.data);
       setError(null);
     } catch (err) {
@@ -34,7 +34,7 @@ export const AttractionsProvider = ({ children }) => {
 
   const createAttraction = async (data) => {
     try {
-      const res = await myaxios.post("/attractions", data);
+      const res = await myaxios.post("attractions/attractions", data);
       setAttractions((prev) => [...prev, res.data]);
       return res.data;
     } catch (err) {
@@ -45,7 +45,7 @@ export const AttractionsProvider = ({ children }) => {
 
   const updateAttraction = async (id, data) => {
     try {
-      const res = await myaxios.put(`/attractions/${id}`, data);
+      const res = await myaxios.put(`/attractions/attractions/${id}`, data);
       setAttractions((prev) =>
         prev.map((item) => (item.id === id ? res.data : item))
       );
@@ -58,7 +58,7 @@ export const AttractionsProvider = ({ children }) => {
 
   const deleteAttraction = async (id) => {
     try {
-      await myaxios.delete(`/attractions/${id}`);
+      await myaxios.delete(`/attractions/attractions/${id}`);
       setAttractions((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       console.error("Errore nella cancellazione dell'attrazione:", err);
