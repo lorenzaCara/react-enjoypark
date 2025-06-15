@@ -22,11 +22,42 @@ export const ShowsProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const res = await myaxios.get("/shows");
-      setShows(res.data);
+      // === AGGIUNGI QUESTO CONSOLE.LOG PER DEBUGGING ===
+      console.log("Risposta API /shows:", res.data);
+      // =================================================
+
+      // === MODIFICA QUI per setShows ===
+      if (Array.isArray(res.data)) {
+        setShows(res.data); // Caso 1: L'API restituisce direttamente un array
+      } else if (
+        res.data &&
+        typeof res.data === "object" &&
+        Array.isArray(res.data.data)
+      ) {
+        setShows(res.data.data); // Caso 2: L'API restituisce un oggetto con l'array sotto la chiave 'data' (es. { data: [...] })
+      } else if (
+        res.data &&
+        typeof res.data === "object" &&
+        Array.isArray(res.data.shows)
+      ) {
+        setShows(res.data.shows); // Caso 3: L'API restituisce un oggetto con l'array sotto la chiave 'shows' (es. { shows: [...] })
+      } else {
+        console.warn(
+          "Risposta API /shows non è un array diretto o annidato come previsto:",
+          res.data
+        );
+        setShows([]); // Fallback sicuro: imposta sempre a un array vuoto
+      }
+      // === FINE MODIFICA ===
+
       setError(null);
     } catch (err) {
       console.error("Errore nel recupero degli spettacoli:", err);
-      setError(err.response?.data?.message || "Errore durante il caricamento degli spettacoli");
+      setError(
+        err.response?.data?.message ||
+          "Errore durante il caricamento degli spettacoli"
+      );
+      setShows([]); // Imposta a array vuoto anche in caso di errore
     } finally {
       setIsLoading(false);
     }

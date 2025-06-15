@@ -28,7 +28,7 @@ export function TicketsProvider({ children }) {
   const fetchPurchasedTickets = async () => {
     if (!user) {
       setPurchasedTickets([]);
-      setLoading(false);
+      setLoading(false); // Assicurati che loading sia false quando non c'è utente
       setError(null);
       return;
     }
@@ -37,9 +37,38 @@ export function TicketsProvider({ children }) {
     setError(null);
     try {
       const { data } = await myaxios.get("/tickets");
-      setPurchasedTickets(data);
+      console.log("Risposta API /tickets (purchasedTickets):", data); // DEBUGGING // === MODIFICA QUI per purchasedTickets ===
+
+      if (Array.isArray(data)) {
+        setPurchasedTickets(data);
+      } else if (data && typeof data === "object" && Array.isArray(data.data)) {
+        setPurchasedTickets(data.data); // Es: { data: [...] }
+      } else if (
+        data &&
+        typeof data === "object" &&
+        Array.isArray(data.tickets)
+      ) {
+        setPurchasedTickets(data.tickets); // Es: { tickets: [...] }
+      } else if (
+        data &&
+        typeof data === "object" &&
+        Array.isArray(data.purchasedTickets)
+      ) {
+        setPurchasedTickets(data.purchasedTickets); // Es: { purchasedTickets: [...] }
+      } else {
+        console.warn(
+          "Risposta API /tickets (purchasedTickets) non è un array o un oggetto con array annidato:",
+          data
+        );
+        setPurchasedTickets([]); // Fallback sicuro
+      } // === FINE MODIFICA ===
     } catch (err) {
-      setError(err.response?.data?.error || err.message || "Errore sconosciuto");
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Errore sconosciuto nel recupero dei biglietti acquistati"
+      );
+      setPurchasedTickets([]); // Imposta a array vuoto anche in caso di errore
     } finally {
       setLoading(false);
     }
