@@ -29,36 +29,11 @@ export const ServicesProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const res = await myaxios.get("/services");
-      console.log("Risposta API /services:", res.data); // DEBUGGING
-      // === MODIFICA QUI per services ===
-      if (Array.isArray(res.data)) {
-        setServices(res.data);
-      } else if (
-        res.data &&
-        typeof res.data === "object" &&
-        Array.isArray(res.data.data)
-      ) {
-        setServices(res.data.data); // Es: { data: [...] }
-      } else if (
-        res.data &&
-        typeof res.data === "object" &&
-        Array.isArray(res.data.services)
-      ) {
-        setServices(res.data.services); // Es: { services: [...] }
-      } else {
-        console.warn(
-          "Risposta API /services non è un array o un oggetto con array annidato:",
-          res.data
-        );
-        setServices([]); // Fallback sicuro
-      }
-      // === FINE MODIFICA ===
-
+      setServices(res.data);
       setError(null);
     } catch (err) {
       console.error("Errore nel recupero dei servizi:", err);
       setError(err.response?.data?.message || "Errore durante il caricamento");
-      setServices([]); // Imposta a array vuoto anche in caso di errore
     } finally {
       setIsLoading(false);
     }

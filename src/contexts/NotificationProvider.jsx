@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAxios } from "./AxiosProvider";
-import { useUser } from "./UserProvider"; // importiamo useUser dal tuo UserProvider
+import { useUser } from "./UserProvider";  // importiamo useUser dal tuo UserProvider
 
 const NotificationContext = createContext();
 
 export function NotificationProvider({ children }) {
-  const { user } = useUser(); // prendiamo l'utente dallo UserProvider
+  const { user } = useUser();  // prendiamo l'utente dallo UserProvider
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,33 +27,10 @@ export function NotificationProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await myaxios.get("/notifications"); // === MODIFICA QUI ===
-      console.log("Risposta API /notifications:", data); // Per debug, controlla nella console!
-      if (Array.isArray(data)) {
-        setNotifications(data); // Caso: l'API restituisce direttamente un array
-      } else if (data && typeof data === "object" && Array.isArray(data.data)) {
-        setNotifications(data.data); // Caso: l'API restituisce { data: [...] }
-      } else if (
-        data &&
-        typeof data === "object" &&
-        Array.isArray(data.notifications)
-      ) {
-        setNotifications(data.notifications); // Caso: l'API restituisce { notifications: [...] }
-      } else {
-        console.warn(
-          "Risposta API /notifications non è un array o un oggetto con array annidato:",
-          data
-        );
-        setNotifications([]); // Fallback sicuro
-      } // === FINE MODIFICA ===
-      setError(null);
+      const { data } = await myaxios.get("/notifications");
+      setNotifications(data);
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          "Errore nel caricamento delle notifiche"
-      );
-      setNotifications([]); // Sempre un array vuoto in caso di errore per sicurezza
+      setError(err.response?.data?.error || err.message || "Errore nel caricamento delle notifiche");
     } finally {
       setLoading(false);
     }
@@ -74,10 +51,7 @@ export function NotificationProvider({ children }) {
       setNotifications((prev) => [data, ...prev]);
       return data;
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.message ||
-        "Errore nella creazione della notifica";
+      const message = err.response?.data?.error || err.message || "Errore nella creazione della notifica";
       setCreateError(message);
       throw new Error(message);
     } finally {
