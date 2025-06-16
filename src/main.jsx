@@ -38,70 +38,103 @@ import { ScrollToTop } from "./components/ScrollToTop"
 import BookingManager from "./components/BookingManager"
 import "./firebaseConfig.js"
 import TicketsManager from "./components/Tickets-manager"
-import AppLoader from "./components/AppLoader" // Import del nuovo componente
+import AppLoader from "./components/AppLoader"
 
 // Set the default bg color for the entire app
 document.documentElement.classList.add("bg-gray-100")
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <ScrollToTop />
-      <AxiosProvider>
-        <ThemeProvider>
-          <UserProvider>
-            {/* AppLoader avvolge tutto il contenuto dell'app */}
-            <AppLoader>
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <NotificationProvider>
-                      <TicketsProvider>
-                        <PlannerProvider>
-                          <AttractionsProvider>
-                            <ServicesProvider>
-                              <ShowsProvider>
-                                <MainLayout />
-                              </ShowsProvider>
-                            </ServicesProvider>
-                          </AttractionsProvider>
-                        </PlannerProvider>
-                      </TicketsProvider>
-                    </NotificationProvider>
-                  }
-                >
-                  <Route index element={<HomePage />} />
-                  <Route path="tickets" element={<TicketsPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="/profile/:ticketId" element={<TicketPage />} />
-                  <Route path="contacts" element={<ContactsPage />} />
-                  <Route path="validate-ticket" element={<ValidateTicket />} />
-                  <Route path="/unauthorized" element={<Unauthorized />} />
-                  <Route path="/mobile-tickets" element={<MobileTicketsPage />} />
-                  <Route path="/notifications" element={<NotificationPage />} />
-                  <Route path="/map" element={<MapPage />} />
-                  <Route path="/planner" element={<PlannerPage />} />
-                  <Route path="/attractions" element={<AttractionsPage />} />
-                  <Route path="/services" element={<ServicesPage />} />
-                  <Route path="/shows" element={<ShowsPage />} />
-                  <Route path="/profile-settings" element={<ProfileSettings />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/bookings" element={<BookingManager />} />
-                  <Route path="/ticket-manager" element={<TicketsManager />} />
-                </Route>
-                <Route path="/" element={<GuestLayout />}>
-                  <Route path="login" element={<Login />} />
-                  <Route path="register" element={<Register />} />
-                  <Route path="recovery" element={<RecoveryPage />} />
-                  <Route path="forgot-password" element={<ForgotPassword />} />
-                </Route>
-              </Routes>
-              <Toaster />
-            </AppLoader>
-          </UserProvider>
-        </ThemeProvider>
-      </AxiosProvider>
-    </BrowserRouter>
-  </React.StrictMode>,
-)
+// --- INIZIO MODIFICA: Aggiunta del try...catch qui ---
+try {
+  const rootElement = document.getElementById("root");
+
+  if (!rootElement) {
+    console.error('Elemento #root non trovato nel DOM! Impossibile avviare l\'applicazione.');
+    // Fallback se l'elemento root non esiste (meno probabile con il preload)
+    document.body.innerHTML = `
+      <div style="color: red; background-color: black; text-align: center; padding: 20px; font-family: sans-serif;">
+        <h1>ERRORE CRITICO: ELEMENTO ROOT MANCANTE!</h1>
+        <p>L'applicazione non può essere caricata perché l'elemento HTML #root non è stato trovato.</p>
+        <p>Assicurati che il tuo file index.html contenga <code style="color: white;">&lt;div id="root"&gt;&lt;/div&gt;</code>.</p>
+      </div>
+    `;
+  } else {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <BrowserRouter>
+          <ScrollToTop />
+          <AxiosProvider>
+            <ThemeProvider>
+              <UserProvider>
+                <AppLoader>
+                  <Routes>
+                    <Route
+                      path="/"
+                      element={
+                        <NotificationProvider>
+                          <TicketsProvider>
+                            <PlannerProvider>
+                              <AttractionsProvider>
+                                <ServicesProvider>
+                                  <ShowsProvider>
+                                    <MainLayout />
+                                  </ShowsProvider>
+                                </ServicesProvider>
+                              </AttractionsProvider>
+                            </PlannerProvider>
+                          </TicketsProvider>
+                        </NotificationProvider>
+                      }
+                    >
+                      <Route index element={<HomePage />} />
+                      <Route path="tickets" element={<TicketsPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
+                      <Route path="/profile/:ticketId" element={<TicketPage />} />
+                      <Route path="contacts" element={<ContactsPage />} />
+                      <Route path="validate-ticket" element={<ValidateTicket />} />
+                      <Route path="/unauthorized" element={<Unauthorized />} />
+                      <Route path="/mobile-tickets" element={<MobileTicketsPage />} />
+                      <Route path="/notifications" element={<NotificationPage />} />
+                      <Route path="/map" element={<MapPage />} />
+                      <Route path="/planner" element={<PlannerPage />} />
+                      <Route path="/attractions" element={<AttractionsPage />} />
+                      <Route path="/services" element={<ServicesPage />} />
+                      <Route path="/shows" element={<ShowsPage />} />
+                      <Route path="/profile-settings" element={<ProfileSettings />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/bookings" element={<BookingManager />} />
+                      <Route path="/ticket-manager" element={<TicketsManager />} />
+                    </Route>
+                    <Route path="/" element={<GuestLayout />}>
+                      <Route path="login" element={<Login />} />
+                      <Route path="register" element={<Register />} />
+                      <Route path="recovery" element={<RecoveryPage />} />
+                      <Route path="forgot-password" element={<ForgotPassword />} />
+                    </Route>
+                  </Routes>
+                  <Toaster />
+                </AppLoader>
+              </UserProvider>
+            </ThemeProvider>
+          </AxiosProvider>
+        </BrowserRouter>
+      </React.StrictMode>
+    );
+  }
+} catch (error) {
+  // QUESTO BLOCCO CATTURERÀ L'ERRORE E LO MOSTRERÀ SULLO SCHERMO
+  console.error("Errore critico durante il rendering dell'app:", error);
+
+  const rootElement = document.getElementById("root"); // Riprova a prendere rootElement nel caso il primo fallisca
+  const targetElement = rootElement || document.body; // Usa root o body come fallback
+
+  targetElement.innerHTML = `
+    <div style="color: red; background-color: black; text-align: center; padding: 20px; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <h1 style="color: white;">ERRORE CRITICO DI CARICAMENTO!</h1>
+      <p style="color: white;">L'applicazione non è riuscita ad avviarsi correttamente.</p>
+      <p style="color: lightgray; word-break: break-all;"><strong>Messaggio:</strong> ${error.message}</p>
+      <p style="color: lightgray; word-break: break-all;"><strong>Stack (parziale):</strong> ${error.stack ? error.stack.split('\n')[0] + '\n' + error.stack.split('\n')[1] : 'N/A'}</p>
+      <p style="color: white; margin-top: 20px;">Per favore, riprova o contatta il supporto.</p>
+    </div>
+  `;
+}
+// --- FINE MODIFICA ---
