@@ -1,7 +1,7 @@
 import { useTickets } from "@/contexts/TicketsProvider"
 import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate, Link } from "react-router"
-import { format, startOfDay } from "date-fns" // Import startOfDay
+import { format, startOfDay, parseISO } from "date-fns" // Import parseISO
 import { it } from "date-fns/locale"
 import gsap from "gsap"
 import {
@@ -26,7 +26,6 @@ import { Badge } from "@/components/ui/badge"
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog"
 import { useToast } from "@/hooks/use-toast"
 import PrintableTicket from "@/components/PrintableTicket"
-// import { addDays } from "date-fns" // No longer needed, good you removed it from usage
 
 export default function TicketPage() {
   const { ticketId } = useParams()
@@ -426,13 +425,15 @@ export default function TicketPage() {
   }
 
   // --- MODIFICA QUI ---
-  const rawValidityDate = new Date(currentTicket.validFor);
-  // Normalize the date to the start of the day in the local timezone
-  const validityDate = startOfDay(rawValidityDate); 
+  // Use parseISO for more robust parsing of ISO 8601 strings, which are common from databases.
+  // Then, normalize to the start of the day in the local timezone.
+  const rawValidityDate = parseISO(currentTicket.validFor);
+  const validityDate = startOfDay(rawValidityDate);
 
   console.log("currentTicket.validFor (original):", currentTicket.validFor);
-  console.log("rawValidityDate (new Date object):", rawValidityDate);
+  console.log("rawValidityDate (parseISO object):", rawValidityDate);
   console.log("validityDate (after startOfDay):", validityDate); // Check this value in console
+
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
   const isActive = currentTicket.status === "ACTIVE"
