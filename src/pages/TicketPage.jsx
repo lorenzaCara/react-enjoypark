@@ -1,8 +1,8 @@
 import { useTickets } from "@/contexts/TicketsProvider"
 import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate, Link } from "react-router"
-import { format } from "date-fns"
-import { it } from "date-fns/locale" // Keep Italian locale
+import { format, startOfDay } from "date-fns" // Import startOfDay
+import { it } from "date-fns/locale"
 import gsap from "gsap"
 import {
   Calendar,
@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { DeleteTicketDialog } from "@/components/DeleteTicketDialog"
 import { useToast } from "@/hooks/use-toast"
 import PrintableTicket from "@/components/PrintableTicket"
-import { addDays } from "date-fns"
+// import { addDays } from "date-fns" // No longer needed, good you removed it from usage
 
 export default function TicketPage() {
   const { ticketId } = useParams()
@@ -273,7 +273,7 @@ export default function TicketPage() {
   const handleShareTicket = async () => {
     const shareData = {
       title: `Biglietto Heptapod Park - ${currentTicket.ticketType?.name || `Biglietto #${currentTicket.id}`}`, // Localized
-      text: `Il mio biglietto per Heptapod Park valido fino al ${format(new Date(currentTicket.validFor), "d MMMM yyyy", { locale: it })}`, // Localized and using 'it' locale
+      text: `Il mio biglietto per Heptapod Park valido fino al ${format(new Date(currentTicket.validFor), "d MMMM", { locale: it })}`, // Localized and using 'it' locale
       url: window.location.href,
     }
 
@@ -425,8 +425,14 @@ export default function TicketPage() {
     )
   }
 
+  // --- MODIFICA QUI ---
   const rawValidityDate = new Date(currentTicket.validFor);
-  const validityDate = rawValidityDate;
+  // Normalize the date to the start of the day in the local timezone
+  const validityDate = startOfDay(rawValidityDate); 
+
+  console.log("currentTicket.validFor (original):", currentTicket.validFor);
+  console.log("rawValidityDate (new Date object):", rawValidityDate);
+  console.log("validityDate (after startOfDay):", validityDate); // Check this value in console
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
   const isActive = currentTicket.status === "ACTIVE"
@@ -569,7 +575,7 @@ export default function TicketPage() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Data di validità</p> {/* Localized */}
                     <p className=" text-gray-900">
-                      {format(validityDate, "EEEE d MMMM yyyy", { locale: it })}
+                      {format(validityDate, "EEEE d MMMM", { locale: it })}
                     </p>
                   </div>
                 </div>
@@ -581,7 +587,7 @@ export default function TicketPage() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Data di acquisto</p> {/* Localized */}
                     <p className=" text-gray-900">
-                      {format(purchaseDate, "d MMMM yyyy, HH:mm", { locale: it })}
+                      {format(purchaseDate, "d MMMM, HH:mm", { locale: it })}
                     </p>
                   </div>
                 </div>
