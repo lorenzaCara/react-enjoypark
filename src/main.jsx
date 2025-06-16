@@ -36,7 +36,7 @@ import SettingsPage from "./pages/SettingsPage"
 import { ThemeProvider } from "./contexts/ThemeProvider"
 import { ScrollToTop } from "./components/ScrollToTop"
 import BookingManager from "./components/BookingManager"
-//import "./firebaseConfig.js"
+import "./firebaseConfig.js"
 import TicketsManager from "./components/Tickets-manager"
 import AppLoader from "./components/AppLoader" // Import del nuovo componente
 
