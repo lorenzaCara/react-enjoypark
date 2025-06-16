@@ -1,281 +1,353 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAxios } from "./AxiosProvider";
-import { useUser } from "./UserProvider";
+import express from 'express';
+import prisma from '../prisma/prismaClient.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import validatorMiddleware from '../middlewares/validator.middleware.js';
+import { createTicketValidator, updateTicketValidator } from '../validators/tickets.validator.js';
+import QRCode from 'qrcode';
+import { TicketStatus } from '@prisma/client';
+import { ticketStatusMiddleware } from '../middlewares/ticketStatus.middleware.js';
+import { staffMiddleware } from '../middlewares/staff.middleware.js';
+import { validateQrCodeValidator } from '../validators/qrCode.validator.js';
 
-const TicketsContext = createContext();
+const ticketsRouter = express.Router();
 
-export function TicketsProvider({ children }) {
-  const { user } = useUser(); // prendo utente dal UserProvider
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [purchasedTickets, setPurchasedTickets] = useState([]);
+const formatTicketWithPrice = (ticket) => ({
+  ...ticket,
+  ticketType: {
+    ...ticket.ticketType,
+    price: ticket.ticketType.price,
+  },
+});
 
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(null);
+ticketsRouter.get('/ticket-types', async (req, res) => {
+  try {
+    const ticketTypes = await prisma.ticketType.findMany({
+      include: {
+        attractions: {
+          include: { attraction: true }
+        },
+        services: {
+          include: { service: true }
+        },
+        shows: {
+          include: { show: true }
+        }
+      }
+    });
+    res.json(ticketTypes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error retrieving ticket types' });
+  }
+});
 
-  const [updating, setUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState(null);
+ticketsRouter.get('/tickets', authMiddleware, ticketStatusMiddleware, async (req, res) => {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      where: { userId: req.user.id },
+      include: {
+        ticketType: {
+          include: {
+            attractions: { include: { attraction: true } },
+            services: { include: { service: true } },
+            shows: { include: { show: true } }
+          }
+        },
+        user: true,
+        discount: true,
+      },
+    });
+    res.json(tickets.map(formatTicketWithPrice));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error retrieving tickets' });
+  }
+});
 
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
+ticketsRouter.get('/tickets/:id', authMiddleware, ticketStatusMiddleware, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid ticket ID' });
 
-  const [currentTicket, setCurrentTicket] = useState(null);
-  const [currentTicketError, setCurrentTicketError] = useState(null);
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id },
+      include: {
+        ticketType:
+        { include:
+          {
+            attractions: { include: { attraction: true } },
+            services: { include: { service: true } },
+            shows: { include: { show: true } }
+           }
+        },
+        user: true,
+        discount: true,
+      },
+    });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.userId !== req.user.id) return res.status(403).json({ error: 'Permission denied' });
+    res.json(formatTicketWithPrice(ticket));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error retrieving the ticket' });
+  }
+});
 
-  const myaxios = useAxios();
-
-  const fetchPurchasedTickets = async () => {
-    if (!user) {
-      setPurchasedTickets([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+ticketsRouter.post(
+  '/tickets',
+  authMiddleware,
+  ticketStatusMiddleware,
+  validatorMiddleware(createTicketValidator),
+  async (req, res) => {
+    const { ticketTypeId, validFor, discountId, status, paymentMethod } = req.body;
     try {
-      const { data } = await myaxios.get("/tickets");
-      setPurchasedTickets(data);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || "Errore sconosciuto");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const ticketType = await prisma.ticketType.findUnique({
+        where: { id: ticketTypeId },
+      });
+      if (!ticketType)
+        return res.status(404).json({ error: 'Ticket type not found' });
 
-  const createTicket = async (ticketData) => {
-    if (!user) {
-      const msg = "Devi essere loggato per creare un biglietto";
-      setCreateError(msg);
-      throw new Error(msg);
-    }
+      const baseUrl = process.env.FRONTEND_URL;
+      const rawCode = `TICKET-${req.user.id}-${ticketTypeId}-${Date.now()}`;
+      const ticketUrl = `${baseUrl}/validate-ticket?code=${encodeURIComponent(
+        rawCode
+      )}`;
 
-    setCreating(true);
-    setCreateError(null);
-    try {
-      // --- INIZIO MODIFICHE QUI ---
-      // Clona ticketData per non modificare l'oggetto originale se viene riutilizzato
-      const payload = { ...ticketData };
+      const qrCodeImage = await QRCode.toDataURL(ticketUrl);
 
-      // 1. Formatta 'validFor' in 'YYYY-MM-DD'
-      if (payload.validFor) {
-        // Se validFor è già un oggetto Date, usalo direttamente.
-        // Altrimenti, se è una stringa ISO, convertila prima in Date.
-        const dateObj = payload.validFor instanceof Date
-          ? payload.validFor
-          : new Date(payload.validFor);
+      // --- INIZIO LOGICA DATA CREAZIONE (POST /tickets) ---
+      const inputDateString = validFor;
 
-        // Estrai anno, mese e giorno
-        const year = dateObj.getFullYear();
-        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // Mese è 0-11
-        const day = dateObj.getDate().toString().padStart(2, '0');
+      const validForStartOfDayUTC = new Date(inputDateString + 'T00:00:00.000Z');
+      const validForEndOfDayUTC = new Date(inputDateString + 'T23:59:59.999Z'); // Fine del giorno di validità (UTC)
 
-        payload.validFor = `${year}-${month}-${day}`; // Formato desiderato
-      } else {
-          // Se validFor non è fornito, potresti voler aggiungere un errore
-          // o impostare un valore predefinito (es. oggi).
-          // Per ora, lo lasciamo passare null/undefined se non presente,
-          // ma il backend Zod validator potrebbe lamentarsi se lo richiede.
-          // Dato che validFor è richiesto dal Zod validator,
-          // assicurati che il componente che chiama createTicket lo passi sempre.
+      const nowUTC = new Date(); // Il momento esatto UTC dell'acquisto
+      const todayUTCStart = new Date();
+      todayUTCStart.setUTCHours(0, 0, 0, 0); // L'inizio del giorno corrente UTC
+
+      console.log("-----------------------------------------");
+      console.log("Debug POST /tickets for date issue:");
+      console.log("inputDateString (from frontend):", inputDateString);
+      console.log("validForStartOfDayUTC (ticket start UTC):", validForStartOfDayUTC.toISOString());
+      console.log("validForEndOfDayUTC (ticket end UTC):", validForEndOfDayUTC.toISOString());
+      console.log("nowUTC (current purchase moment UTC):", nowUTC.toISOString());
+      console.log("todayUTCStart (start of current day UTC):", todayUTCStart.toISOString());
+      console.log("-----------------------------------------");
+
+
+      // Controlla se la data di validità è antecedente all'inizio del giorno corrente (UTC)
+      if (validForStartOfDayUTC.getTime() < todayUTCStart.getTime()) {
+        console.log("Validity date is in the past.");
+        return res.status(400).json({ error: 'Validity date cannot be in the past' });
       }
 
-      // 2. Rimuovi 'userId' dal payload, lo gestisce il backend
-      delete payload.userId;
-      // --- FINE MODIFICHE QUI ---
-
-      console.log("Ticket inviato:", payload); // Logga il payload modificato
-      const { data } = await myaxios.post("/tickets", payload); // Invia il payload modificato
-      setPurchasedTickets((prev) => [...prev, data]);
-      return data;
-    } catch (err) {
-      const message = err.response?.data?.error || err.message || "Errore nella creazione del biglietto";
-      setCreateError(message);
-      console.error("Errore di creazione:", err.response?.data); // Logga il dettaglio dell'errore dal backend
-      throw new Error(message);
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const updateTicket = async (ticketId, updatedData) => {
-    if (!user) {
-      const msg = "Devi essere loggato per aggiornare un biglietto";
-      setUpdateError(msg);
-      throw new Error(msg);
-    }
-
-    setUpdating(true);
-    setUpdateError(null);
-    try {
-      // --- MODIFICHE SIMILI ANCHE QUI PER UPDATE SE validFor PUÒ ESSERE AGGIORNATO ---
-      const payload = { ...updatedData };
-      if (payload.validFor) {
-        const dateObj = payload.validFor instanceof Date
-          ? payload.validFor
-          : new Date(payload.validFor);
-        const year = dateObj.getFullYear();
-        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-        const day = dateObj.getDate().toString().padStart(2, '0');
-        payload.validFor = `${year}-${month}-${day}`;
+      // DETERMINAZIONE DELLO STATO ALLA CREAZIONE:
+      let computedStatus = TicketStatus.ACTIVE; // Presupponi ACTIVE
+      
+      // Se la data di validità è NEL FUTURO, è sicuramente ACTIVE.
+      // Se la data di validità è OGGI (validForStartOfDayUTC.getTime() === todayUTCStart.getTime()),
+      // allora il biglietto è ACTIVE per definizione per l'intera giornata.
+      // Diventa EXPIRED solo se la data di validità è già passata completamente rispetto al momento attuale.
+      if (nowUTC.getTime() > validForEndOfDayUTC.getTime()) {
+          // Questo significa che l'acquisto sta avvenendo DOPO la mezzanotte del giorno per cui il ticket è valido.
+          // Quindi, è EXPIRED.
+          computedStatus = TicketStatus.EXPIRED;
+          console.log("Ticket purchased after its validity period (EXPIRED).");
+      } else if (status) {
+          // Se lo stato è stato esplicitamente fornito nel body, usalo (es. per staff)
+          computedStatus = status;
       }
-      delete payload.userId; // Anche qui, non inviare userId se non è modificabile dal client
-      // --- FINE MODIFICHE SIMILI ---
+      // Se non rientra nei casi precedenti, rimane ACTIVE (copre il caso "oggi").
 
-      const { data } = await myaxios.put(`/tickets/${ticketId}`, payload);
-      setPurchasedTickets((prev) =>
-        prev.map((t) => (t.id === ticketId ? data : t))
-      );
-      return data;
-    } catch (err) {
-      const message = err.response?.data?.error || err.message || "Errore nell'aggiornamento del biglietto";
-      setUpdateError(message);
-      console.error("Errore di aggiornamento:", err.response?.data);
-      throw new Error(message);
-    } finally {
-      setUpdating(false);
+      const ticket = await prisma.ticket.create({
+        data: {
+          userId: req.user.id,
+          ticketTypeId,
+          qrCode: qrCodeImage,
+          rawCode,
+          validFor: validForStartOfDayUTC, // Salviamo l'inizio del giorno UTC nel DB
+          discountId: discountId || null,
+          paymentMethod: paymentMethod || null,
+          status: computedStatus,
+        },
+        include: {
+          ticketType: {
+            include: {
+              attractions: { include: { attraction: true } },
+              services: { include: { service: true } },
+              shows: { include: { show: true } },
+            },
+          },
+        },
+      });
+      console.log("Created ticket with status:", computedStatus);
+      // --- FINE LOGICA DATA CREAZIONE ---
+
+      res.status(201).json(formatTicketWithPrice(ticket));
+    } catch (error) {
+      console.error("Error creating the ticket:", error); // Log più dettagliato dell'errore
+      res.status(500).json({ error: 'Error creating the ticket' });
     }
-  };
+  }
+);
 
-  const deleteTicket = async (ticketId) => {
-    if (!user) {
-      const msg = "Devi essere loggato per eliminare un biglietto";
-      setDeleteError(msg);
-      throw new Error(msg);
-    }
+ticketsRouter.put('/tickets/:id', authMiddleware, ticketStatusMiddleware, validatorMiddleware(updateTicketValidator(false)), staffMiddleware, async (req, res) => {
+  const ticketId = parseInt(req.params.id);
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ticket ID' });
 
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      await myaxios.delete(`/tickets/${ticketId}`);
-      setPurchasedTickets((prev) => prev.filter((t) => t.id !== ticketId));
-    } catch (err) {
-      const message = err.response?.data?.error || err.message || "Errore nell'eliminazione del biglietto";
-      setDeleteError(message);
-      throw new Error(message);
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const { ticketTypeId, validFor, discountId, status, paymentMethod } = req.body;
+  try {
+    const ticketType = await prisma.ticketType.findUnique({ where: { id: ticketTypeId } });
+    if (!ticketType) return res.status(404).json({ error: 'Ticket type not found' });
 
-  const fetchTickets = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await myaxios.get("/ticket-types");
-      setTickets(data);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || "Errore sconosciuto");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    // Il controllo `if (ticket.userId !== req.user.id)` è stato rimosso in PUT per staffMiddleware.
+    // Se vuoi che solo il proprietario possa aggiornare, devi ripristinarlo o affinarlo nel middleware.
 
-  const fetchTicketByCode = useCallback(async (code) => {
-    if (!user) {
-      setCurrentTicket(null);
-      setCurrentTicketError("Devi essere loggato per recuperare un biglietto");
-      throw new Error("Devi essere loggato per recuperare un biglietto");
+
+    // Prepara validFor per Prisma
+    let updatedValidFor = validFor;
+    if (typeof validFor === 'string' && validFor.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      updatedValidFor = new Date(validFor + "T00:00:00.000Z"); // Salviamo inizio giorno UTC
+    } else if (validFor instanceof Date) {
+      updatedValidFor = validFor;
     }
 
-    setCurrentTicket(null);
-    setCurrentTicketError(null);
-    try {
-      const { data } = await myaxios.get(`/tickets/code/${code}`);
-      setCurrentTicket(data);
-      return data;
-    } catch (err) {
-      const message = err.response?.data?.error || err.message || "Errore nel recupero del biglietto";
-      setCurrentTicketError(message);
-      throw new Error(message);
-    }
-  }, [user]);
+    const now = new Date(); // Data e ora locale del server
+    // Calcola lo status basandosi sulla data di validità (fine giornata UTC per consistenza)
+    const validForForStatusCheck = updatedValidFor instanceof Date ? new Date(updatedValidFor.toISOString().split('T')[0] + 'T23:59:59.999Z') : null;
+    const computedStatus = status || (validForForStatusCheck && now.getTime() > validForForStatusCheck.getTime() ? TicketStatus.EXPIRED : TicketStatus.ACTIVE);
 
-  const validateTicket = async (qrCode) => {
-    if (!user) {
-      const msg = "Devi essere loggato per validare un biglietto";
-      setUpdateError(msg);
-      throw new Error(msg);
-    }
-
-    setUpdating(true);
-    setUpdateError(null);
-  
-    try {
-      const { data } = await myaxios.post('/tickets/validate', { qrCode });
-  
-      if (!data || !data.ticket) {
-        throw new Error("Risposta non valida dal server: ticket mancante");
+    const updatedTicket = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        ticketTypeId,
+        validFor: updatedValidFor, // Utilizza la data preparata
+        discountId: discountId || null,
+        paymentMethod: paymentMethod || null,
+        status: computedStatus,
+      },
+      include: {
+        ticketType: { include: {
+            attractions: { include: { attraction: true } },
+            services: { include: { service: true } },
+            shows: { include: { show: true } } } },
+        user: true,
+        discount: true,
       }
-  
-      const validatedTicket = data.ticket;
-  
-      setPurchasedTickets((prev) =>
-        prev.map((t) => (t.rawCode === qrCode ? validatedTicket : t))
-      );
-  
-      setCurrentTicket((prev) =>
-        prev?.rawCode === qrCode ? validatedTicket : prev
-      );
-  
-      return validatedTicket;
-  
-    } catch (err) {
-      const message = err.response?.data?.error || err.message || "Errore nella validazione del biglietto";
-      setUpdateError(message);
-      console.error("Errore nella validazione del biglietto:", err);
-      throw new Error(message);
-    } finally {
-      setUpdating(false);
+    });
+    res.json(formatTicketWithPrice(updatedTicket));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error updating the ticket' });
+  }
+});
+
+ticketsRouter.delete('/tickets/:id', authMiddleware, ticketStatusMiddleware, async (req, res) => {
+  const ticketId = parseInt(req.params.id);
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ticket ID' });
+
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        ticketType: { include: {
+            attractions: { include: { attraction: true } },
+            services: { include: { service: true } },
+            shows: { include: { show: true } } } },
+        user: true,
+        discount: true,
+      }
+    });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.userId !== req.user.id) return res.status(403).json({ error: 'Permission denied' });
+
+    await prisma.ticket.delete({ where: { id: ticketId } });
+    res.json({ message: 'Ticket successfully deleted', ticket: formatTicketWithPrice(ticket) });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'Error deleting the ticket' });
+  }
+});
+
+ticketsRouter.post('/tickets/validate', authMiddleware, staffMiddleware, async (req, res) => {
+  const { qrCode: rawCode } = req.body;
+
+  if (!rawCode) {
+    return res.status(400).json({ error: 'rawCode is required for validation' });
+  }
+
+  try {
+    const ticket = await prisma.ticket.findUnique({ where: { rawCode } });
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
     }
-  };
 
-  // Quando cambia user (login/logout), ricarica i dati
-  useEffect(() => {
-    fetchTickets();
-    fetchPurchasedTickets();
-  }, [user]);
+    if (ticket.status === 'USED') {
+      return res.status(400).json({ error: 'Ticket already used' });
+    }
 
-  return (
-    <TicketsContext.Provider
-      value={{
-        tickets,
-        loading,
-        error,
-        fetchTickets,
-        purchasedTickets,
-        fetchPurchasedTickets,
+    if (ticket.status !== 'ACTIVE') {
+      return res.status(400).json({ error: `Ticket not valid, status: ${ticket.status}` });
+    }
 
-        createTicket,
-        creating,
-        createError,
+    // --- LOGICA DATA VALIDAZIONE (POST /tickets/validate) ---
+    const ticketValidForDB = new Date(ticket.validFor); // Ottieni la data come salvata nel DB (sarà UTC)
 
-        updateTicket,
-        updating,
-        updateError,
+    const ticketValidDayUTC = new Date(ticketValidForDB.toISOString().split('T')[0] + 'T00:00:00.000Z');
 
-        deleteTicket,
-        deleting,
-        deleteError,
+    const todayUTC = new Date();
+    todayUTC.setUTCHours(0, 0, 0, 0); // Questo assicura che sia l'inizio del giorno UTC
 
-        currentTicket,
-        currentTicketError,
-        fetchTicketByCode,
+    // Confronta i timestamp UTC degli inizi dei giorni per verificare se è lo stesso giorno
+    if (ticketValidDayUTC.getTime() !== todayUTC.getTime()) {
+      return res.status(400).json({ error: 'Ticket can only be validated on the indicated date.' });
+    }
+    // --- FINE LOGICA DATA VALIDAZIONE ---
 
-        validateTicket,
-        setCurrentTicket,
-        setCurrentTicketError,
+    const updatedTicket = await prisma.ticket.update({
+      where: { rawCode },
+      data: { status: 'USED' }
+    });
 
-        addPurchasedTicket: (ticket) => setPurchasedTickets((prev) => [...prev, ticket]),
-      }}
-    >
-      {children}
-    </TicketsContext.Provider>
-  );
-}
+    return res.json({ message: 'Ticket successfully validated', ticket: updatedTicket });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error during ticket validation' });
+  }
+});
 
-export function useTickets() {
-  return useContext(TicketsContext);
-}
+
+ticketsRouter.get('/tickets/code/:rawCode', authMiddleware, async (req, res) => {
+  const { rawCode } = req.params;
+
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { rawCode },
+      include: {
+        ticketType: {
+          include: {
+            attractions: {
+              include: {
+                attraction: true
+              }
+            }
+          }
+        },
+        user: true,
+        discount: true
+      }
+    });
+
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+
+    res.json(formatTicketWithPrice(ticket));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error retrieving ticket by code' });
+  }
+});
+
+export default ticketsRouter;
