@@ -678,10 +678,10 @@ export default function TicketPage() {
         isOpen={isDeleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        title="Annulla Prenotazione" // Localized
-        description="Sei sicuro di voler annullare questa prenotazione? Il biglietto verrà eliminato permanentemente e questa azione non può essere annullata." // Localized
-        confirmText="Annulla Prenotazione" // Localized
-        cancelText="Mantieni Biglietto" // Localized
+        title="Cancel Reservation" // Localized
+        description="Are you sure you want to cancel this reservation? The ticket will be permanently deleted and this action cannot be undone." // Localized
+        confirmText="Cancel Reservation" // Localized
+        cancelText="Keep Ticket" // Localized
         isLoading={isDeleting}
         variant="destructive"
       />
