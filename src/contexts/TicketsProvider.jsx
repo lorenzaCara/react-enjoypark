@@ -1,17 +1,11 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAxios } from "./AxiosProvider";
 import { useUser } from "./UserProvider";
 
 const TicketsContext = createContext();
 
 export function TicketsProvider({ children }) {
-  const { user } = useUser();
+  const { user } = useUser(); // prendo utente dal UserProvider
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -45,9 +39,7 @@ export function TicketsProvider({ children }) {
       const { data } = await myaxios.get("/tickets");
       setPurchasedTickets(data);
     } catch (err) {
-      setError(
-        err.response?.data?.error || err.message || "Errore sconosciuto"
-      );
+      setError(err.response?.data?.error || err.message || "Errore sconosciuto");
     } finally {
       setLoading(false);
     }
@@ -63,23 +55,45 @@ export function TicketsProvider({ children }) {
     setCreating(true);
     setCreateError(null);
     try {
+      // --- INIZIO MODIFICHE QUI ---
+      // Clona ticketData per non modificare l'oggetto originale se viene riutilizzato
       const payload = { ...ticketData };
-      if (payload.validFor instanceof Date) {
-        payload.validFor = payload.validFor.toISOString().split("T")[0];
-      } else if (typeof payload.validFor === "string") {
-        // If it's already a string, assume it's in 'YYYY-MM-DD' format
-        // (e.g., from an input type="date")
+
+      // 1. Formatta 'validFor' in 'YYYY-MM-DD'
+      if (payload.validFor) {
+        // Se validFor è già un oggetto Date, usalo direttamente.
+        // Altrimenti, se è una stringa ISO, convertila prima in Date.
+        const dateObj = payload.validFor instanceof Date
+          ? payload.validFor
+          : new Date(payload.validFor);
+
+        // Estrai anno, mese e giorno
+        const year = dateObj.getFullYear();
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // Mese è 0-11
+        const day = dateObj.getDate().toString().padStart(2, '0');
+
+        payload.validFor = `${year}-${month}-${day}`; // Formato desiderato
+      } else {
+          // Se validFor non è fornito, potresti voler aggiungere un errore
+          // o impostare un valore predefinito (es. oggi).
+          // Per ora, lo lasciamo passare null/undefined se non presente,
+          // ma il backend Zod validator potrebbe lamentarsi se lo richiede.
+          // Dato che validFor è richiesto dal Zod validator,
+          // assicurati che il componente che chiama createTicket lo passi sempre.
       }
 
-      const { data } = await myaxios.post("/tickets", payload);
+      // 2. Rimuovi 'userId' dal payload, lo gestisce il backend
+      delete payload.userId;
+      // --- FINE MODIFICHE QUI ---
+
+      console.log("Ticket inviato:", payload); // Logga il payload modificato
+      const { data } = await myaxios.post("/tickets", payload); // Invia il payload modificato
       setPurchasedTickets((prev) => [...prev, data]);
       return data;
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.message ||
-        "Errore nella creazione del biglietto";
+      const message = err.response?.data?.error || err.message || "Errore nella creazione del biglietto";
       setCreateError(message);
+      console.error("Errore di creazione:", err.response?.data); // Logga il dettaglio dell'errore dal backend
       throw new Error(message);
     } finally {
       setCreating(false);
@@ -96,10 +110,19 @@ export function TicketsProvider({ children }) {
     setUpdating(true);
     setUpdateError(null);
     try {
+      // --- MODIFICHE SIMILI ANCHE QUI PER UPDATE SE validFor PUÒ ESSERE AGGIORNATO ---
       const payload = { ...updatedData };
-      if (payload.validFor instanceof Date) {
-        payload.validFor = payload.validFor.toISOString().split("T")[0];
+      if (payload.validFor) {
+        const dateObj = payload.validFor instanceof Date
+          ? payload.validFor
+          : new Date(payload.validFor);
+        const year = dateObj.getFullYear();
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        payload.validFor = `${year}-${month}-${day}`;
       }
+      delete payload.userId; // Anche qui, non inviare userId se non è modificabile dal client
+      // --- FINE MODIFICHE SIMILI ---
 
       const { data } = await myaxios.put(`/tickets/${ticketId}`, payload);
       setPurchasedTickets((prev) =>
@@ -107,10 +130,7 @@ export function TicketsProvider({ children }) {
       );
       return data;
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.message ||
-        "Errore nell'aggiornamento del biglietto";
+      const message = err.response?.data?.error || err.message || "Errore nell'aggiornamento del biglietto";
       setUpdateError(message);
       console.error("Errore di aggiornamento:", err.response?.data);
       throw new Error(message);
@@ -132,10 +152,7 @@ export function TicketsProvider({ children }) {
       await myaxios.delete(`/tickets/${ticketId}`);
       setPurchasedTickets((prev) => prev.filter((t) => t.id !== ticketId));
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.message ||
-        "Errore nell'eliminazione del biglietto";
+      const message = err.response?.data?.error || err.message || "Errore nell'eliminazione del biglietto";
       setDeleteError(message);
       throw new Error(message);
     } finally {
@@ -150,41 +167,31 @@ export function TicketsProvider({ children }) {
       const { data } = await myaxios.get("/ticket-types");
       setTickets(data);
     } catch (err) {
-      setError(
-        err.response?.data?.error || err.message || "Errore sconosciuto"
-      );
+      setError(err.response?.data?.error || err.message || "Errore sconosciuto");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTicketByCode = useCallback(
-    async (code) => {
-      if (!user) {
-        setCurrentTicket(null);
-        setCurrentTicketError(
-          "Devi essere loggato per recuperare un biglietto"
-        );
-        throw new Error("Devi essere loggato per recuperare un biglietto");
-      }
-
+  const fetchTicketByCode = useCallback(async (code) => {
+    if (!user) {
       setCurrentTicket(null);
-      setCurrentTicketError(null);
-      try {
-        const { data } = await myaxios.get(`/tickets/code/${code}`);
-        setCurrentTicket(data);
-        return data;
-      } catch (err) {
-        const message =
-          err.response?.data?.error ||
-          err.message ||
-          "Errore nel recupero del biglietto";
-        setCurrentTicketError(message);
-        throw new Error(message);
-      }
-    },
-    [user]
-  );
+      setCurrentTicketError("Devi essere loggato per recuperare un biglietto");
+      throw new Error("Devi essere loggato per recuperare un biglietto");
+    }
+
+    setCurrentTicket(null);
+    setCurrentTicketError(null);
+    try {
+      const { data } = await myaxios.get(`/tickets/code/${code}`);
+      setCurrentTicket(data);
+      return data;
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || "Errore nel recupero del biglietto";
+      setCurrentTicketError(message);
+      throw new Error(message);
+    }
+  }, [user]);
 
   const validateTicket = async (qrCode) => {
     if (!user) {
@@ -195,24 +202,28 @@ export function TicketsProvider({ children }) {
 
     setUpdating(true);
     setUpdateError(null);
+  
     try {
-      const { data } = await myaxios.post("/tickets/validate", { qrCode });
+      const { data } = await myaxios.post('/tickets/validate', { qrCode });
+  
       if (!data || !data.ticket) {
         throw new Error("Risposta non valida dal server: ticket mancante");
       }
+  
       const validatedTicket = data.ticket;
+  
       setPurchasedTickets((prev) =>
         prev.map((t) => (t.rawCode === qrCode ? validatedTicket : t))
       );
+  
       setCurrentTicket((prev) =>
         prev?.rawCode === qrCode ? validatedTicket : prev
       );
+  
       return validatedTicket;
+  
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.message ||
-        "Errore nella validazione del biglietto";
+      const message = err.response?.data?.error || err.message || "Errore nella validazione del biglietto";
       setUpdateError(message);
       console.error("Errore nella validazione del biglietto:", err);
       throw new Error(message);
@@ -221,6 +232,7 @@ export function TicketsProvider({ children }) {
     }
   };
 
+  // Quando cambia user (login/logout), ricarica i dati
   useEffect(() => {
     fetchTickets();
     fetchPurchasedTickets();
@@ -256,11 +268,10 @@ export function TicketsProvider({ children }) {
         setCurrentTicket,
         setCurrentTicketError,
 
-        addPurchasedTicket: (ticket) =>
-          setPurchasedTickets((prev) => [...prev, ticket]),
+        addPurchasedTicket: (ticket) => setPurchasedTickets((prev) => [...prev, ticket]),
       }}
     >
-            {children}   {" "}
+      {children}
     </TicketsContext.Provider>
   );
 }
