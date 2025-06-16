@@ -1,13 +1,13 @@
-import React from "react"
-import { useTickets } from "@/contexts/TicketsProvider"
-import { useUser } from "@/contexts/UserProvider"
-import { useEffect, useState, useRef } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
-import { format } from "date-fns"
-import { it } from "date-fns/locale"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import gsap from "gsap"
+import React from "react";
+import { useTickets } from "@/contexts/TicketsProvider";
+import { useUser } from "@/contexts/UserProvider";
+import { useEffect, useState, useRef } from "react";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import gsap from "gsap";
 import {
   CheckCircle,
   XCircle,
@@ -24,98 +24,115 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
+} from "lucide-react";
 
 export default function ValidateTicket() {
-  const [searchParams] = useSearchParams()
-  const rawCode = searchParams.get("code")
+  const [searchParams] = useSearchParams();
+  const rawCode = searchParams.get("code");
 
-  const navigate = useNavigate()
-  const { user } = useUser()
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const location = useLocation(); // Aggiunto: Ottiene l'oggetto location corrente
 
-  const { currentTicket, currentTicketError, fetchTicketByCode, validateTicket } = useTickets()
+  const {
+    currentTicket,
+    currentTicketError,
+    fetchTicketByCode,
+    validateTicket,
+  } = useTickets();
 
-  const [success, setSuccess] = useState("")
-  const [localError, setLocalError] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [isValidating, setIsValidating] = useState(false)
-  const [showDetails, setShowDetails] = useState(false)
-  const [expandedDetails, setExpandedDetails] = useState(false)
+  const [success, setSuccess] = useState("");
+  const [localError, setLocalError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isValidating, setIsValidating] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [expandedDetails, setExpandedDetails] = useState(false);
 
-  const headerRef = useRef(null)
-  const cardRef = useRef(null)
-  const detailsRef = useRef(null)
-  const successRef = useRef(null)
+  const headerRef = useRef(null);
+  const cardRef = useRef(null);
+  const detailsRef = useRef(null);
+  const successRef = useRef(null);
 
   useEffect(() => {
     // Check if user is logged in and has STAFF role
     if (!user) {
-      if (rawCode) {
-        localStorage.setItem("pendingTicketCode", rawCode)
-      }
-      navigate("/login")
-      return
+      // MODIFICA QUI: Salva l'intera location anziché solo il rawCode
+      // Questo memorizza il percorso e i parametri di ricerca come "/validate-ticket?code=XYZ"
+      localStorage.setItem("redirectAfterLogin", JSON.stringify(location));
+      navigate("/login");
+      return;
     }
+
+    // Rimuovi l'elemento dal localStorage una volta che l'utente è autenticato.
+    // Questo è importante per evitare reindirizzamenti indesiderati in sessioni future.
+    localStorage.removeItem("redirectAfterLogin");
 
     if (user.role !== "STAFF") {
-      navigate("/unauthorized")
-      return
-    }
+      navigate("/unauthorized");
+      return;
+    } // If we have a code, fetch the ticket
 
-    // If we have a code, fetch the ticket
     const fetchTicket = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         if (rawCode) {
-          await fetchTicketByCode(rawCode)
-          // Animate card entrance after loading
+          await fetchTicketByCode(rawCode); // Animate card entrance after loading
           setTimeout(() => {
-            setShowDetails(true)
+            setShowDetails(true);
             if (cardRef.current) {
               gsap.fromTo(
                 cardRef.current,
                 { opacity: 0, y: 30, scale: 0.95 },
-                { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.7)" },
-              )
+                {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  duration: 0.6,
+                  ease: "back.out(1.7)",
+                }
+              );
             }
-          }, 300)
+          }, 300);
         } else {
-          setLocalError("No ticket code provided")
+          setLocalError("No ticket code provided");
         }
       } catch (err) {
-        console.error(err)
-        setLocalError(err.message || "Error loading the ticket")
+        console.error(err);
+        setLocalError(err.message || "Error loading the ticket");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchTicket()
+    fetchTicket(); // Animate header entrance
 
-    // Animate header entrance
     if (headerRef.current) {
-      gsap.fromTo(headerRef.current, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" })
+      gsap.fromTo(
+        headerRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+      );
     }
-  }, [rawCode, user, navigate, fetchTicketByCode])
+  }, [rawCode, user, navigate, fetchTicketByCode, location]);
 
   const handleValidate = async () => {
     try {
       if (!currentTicket || !currentTicket.rawCode) {
-        throw new Error("Invalid or unloaded ticket")
+        throw new Error("Invalid or unloaded ticket");
       }
 
-      setIsValidating(true)
-      await validateTicket(currentTicket.rawCode)
-      setSuccess("Ticket successfully validated!")
-      setLocalError("")
+      setIsValidating(true);
+      await validateTicket(currentTicket.rawCode);
+      setSuccess("Ticket successfully validated!");
+      setLocalError("");
 
       // Animate success message
       if (successRef.current) {
         gsap.fromTo(
           successRef.current,
           { opacity: 0, scale: 0.8, y: 20 },
-          { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" },
-        )
+          { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }
+        );
       }
 
       // Confetti effect simulation
@@ -127,17 +144,17 @@ export default function ValidateTicket() {
             yoyo: true,
             repeat: 1,
             ease: "power2.inOut",
-          })
+          });
         }
-      }, 500)
+      }, 500);
     } catch (err) {
-      console.error("Validation error:", err)
-      setLocalError(err.message || "Unknown error during validation")
-      setSuccess("")
+      console.error("Validation error:", err);
+      setLocalError(err.message || "Unknown error during validation");
+      setSuccess("");
     } finally {
-      setIsValidating(false)
+      setIsValidating(false);
     }
-  }
+  };
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -152,7 +169,7 @@ export default function ValidateTicket() {
           icon: CheckCircle,
           bgColor: "bg-emerald-50",
           borderColor: "border-emerald-200",
-        }
+        };
       case "USED":
         return {
           badge: (
@@ -164,21 +181,26 @@ export default function ValidateTicket() {
           icon: Eye,
           bgColor: "bg-cyan-50",
           borderColor: "border-cyan-200",
-        }
+        };
       case "EXPIRED":
         return {
           badge: (
-            <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 font-medium text-xs sm:text-sm">✕ Expired</Badge>
+            <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 font-medium text-xs sm:text-sm">
+              ✕ Expired
+            </Badge>
           ),
           color: "gray",
           icon: XCircle,
           bgColor: "bg-gray-50",
-          borderColor: "border-gray-200"
-        }
+          borderColor: "border-gray-200",
+        };
       default:
         return {
           badge: (
-            <Badge variant="secondary" className="font-medium text-xs sm:text-sm">
+            <Badge
+              variant="secondary"
+              className="font-medium text-xs sm:text-sm"
+            >
               {status}
             </Badge>
           ),
@@ -186,18 +208,18 @@ export default function ValidateTicket() {
           icon: AlertTriangle,
           bgColor: "bg-gray-50",
           borderColor: "border-gray-200",
-        }
+        };
     }
-  }
+  };
 
   const handleRetry = () => {
-    setLocalError("")
-    setSuccess("")
-    window.location.reload()
-  }
+    setLocalError("");
+    setSuccess("");
+    window.location.reload();
+  };
 
   if (!user || user.role !== "STAFF") {
-    return null // Will redirect in useEffect
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -220,8 +242,12 @@ export default function ValidateTicket() {
                 <QrCode className="w-6 h-6 sm:w-10 sm:h-10 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-4xl font-light mb-1 sm:mb-2 leading-tight">Ticket validation</h1>
-                <p className="text-teal-100 text-sm sm:text-lg">Scan and validate ticket</p>
+                <h1 className="text-xl sm:text-4xl font-light mb-1 sm:mb-2 leading-tight">
+                  Ticket validation
+                </h1>
+                <p className="text-teal-100 text-sm sm:text-lg">
+                  Scan and validate ticket
+                </p>
               </div>
             </div>
 
@@ -249,8 +275,12 @@ export default function ValidateTicket() {
                   <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-teal-200 rounded-full mx-auto mb-4 sm:mb-6"></div>
                   <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
-                <h3 className="text-lg sm:text-xl text-gray-900 mb-2">Loading ticket</h3>
-                <p className="text-gray-600 text-sm sm:text-base">Verification in progress...</p>
+                <h3 className="text-lg sm:text-xl text-gray-900 mb-2">
+                  Loading ticket
+                </h3>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  Verification in progress...
+                </p>
               </div>
 
               {/* Mobile Skeleton Loading */}
@@ -275,7 +305,9 @@ export default function ValidateTicket() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                   <XCircle className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
                 </div>
-                <h3 className="text-lg sm:text-2xl text-gray-900 mb-3">Loading error</h3>
+                <h3 className="text-lg sm:text-2xl text-gray-900 mb-3">
+                  Loading error
+                </h3>
                 <p className="text-gray-600 leading-relaxed mb-6 text-sm sm:text-base max-w-md mx-auto">
                   {currentTicketError || localError}
                 </p>
@@ -294,9 +326,12 @@ export default function ValidateTicket() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                   <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600" />
                 </div>
-                <h3 className="text-lg sm:text-2xl text-gray-900 mb-3">Ticket not found</h3>
+                <h3 className="text-lg sm:text-2xl text-gray-900 mb-3">
+                  Ticket not found
+                </h3>
                 <p className="text-gray-600 leading-relaxed text-sm sm:text-base max-w-md mx-auto">
-                  No ticket found with the provided code. Please ensure the QR code is readable.
+                  No ticket found with the provided code. Please ensure the QR
+                  code is readable.
                 </p>
               </div>
             </div>
@@ -305,15 +340,26 @@ export default function ValidateTicket() {
               {/* Mobile-Optimized Ticket Status Header */}
               <div className="text-center mb-6 sm:mb-8">
                 <div
-                  className={`inline-flex items-center gap-2 sm:gap-3 ${getStatusConfig(currentTicket.status).bgColor} ${getStatusConfig(currentTicket.status).borderColor} border rounded-3xl px-4 py-3 sm:px-6 sm:py-4`}
+                  className={`inline-flex items-center gap-2 sm:gap-3 ${
+                    getStatusConfig(currentTicket.status).bgColor
+                  } ${
+                    getStatusConfig(currentTicket.status).borderColor
+                  } border rounded-3xl px-4 py-3 sm:px-6 sm:py-4`}
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center">
-                    {React.createElement(getStatusConfig(currentTicket.status).icon, {
-                      className: `w-5 h-5 sm:w-6 sm:h-6 text-${getStatusConfig(currentTicket.status).color}-600`,
-                    })}
+                    {React.createElement(
+                      getStatusConfig(currentTicket.status).icon,
+                      {
+                        className: `w-5 h-5 sm:w-6 sm:h-6 text-${
+                          getStatusConfig(currentTicket.status).color
+                        }-600`,
+                      }
+                    )}
                   </div>
                   <div className="text-left">
-                    <div className="text-xs sm:text-sm text-gray-600 mb-1">Ticket status</div>
+                    <div className="text-xs sm:text-sm text-gray-600 mb-1">
+                      Ticket status
+                    </div>
                     {getStatusConfig(currentTicket.status).badge}
                   </div>
                 </div>
@@ -330,7 +376,9 @@ export default function ValidateTicket() {
                       <Ticket className="w-5 h-5 sm:w-7 sm:h-7 text-teal-700" />
                     </div>
                     <div>
-                      <h3 className="text-lg sm:text-xl text-gray-900">Ticket details</h3>
+                      <h3 className="text-lg sm:text-xl text-gray-900">
+                        Ticket details
+                      </h3>
                       <p className="text-gray-600 text-xs sm:text-sm hidden sm:block">
                         Full ticket details
                       </p>
@@ -344,7 +392,11 @@ export default function ValidateTicket() {
                     onClick={() => setExpandedDetails(!expandedDetails)}
                     className="sm:hidden rounded-xl p-2"
                   >
-                    {expandedDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    {expandedDetails ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
 
@@ -356,7 +408,9 @@ export default function ValidateTicket() {
                       <QrCode className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Ticket code</div>
+                      <div className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                        Ticket code
+                      </div>
                       <div className="font-mono text-gray-900 bg-gray-100 px-2 py-1 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm break-all">
                         {currentTicket.rawCode}
                       </div>
@@ -370,7 +424,9 @@ export default function ValidateTicket() {
                         <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs sm:text-sm text-gray-500 mb-1">Ticket type</div>
+                        <div className="text-xs sm:text-sm text-gray-500 mb-1">
+                          Ticket type
+                        </div>
                         <div className=" text-gray-900 text-sm sm:text-lg truncate">
                           {currentTicket.ticketType.name}
                         </div>
@@ -379,7 +435,11 @@ export default function ValidateTicket() {
                   )}
 
                   {/* Collapsible details on mobile, always visible on desktop */}
-                  <div className={`space-y-3 sm:space-y-4 ${expandedDetails ? "block" : "hidden"} sm:block`}>
+                  <div
+                    className={`space-y-3 sm:space-y-4 ${
+                      expandedDetails ? "block" : "hidden"
+                    } sm:block`}
+                  >
                     {/* Valid Until */}
                     {currentTicket.validFor && (
                       <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
@@ -387,9 +447,15 @@ export default function ValidateTicket() {
                           <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm text-gray-500 mb-1">Valid until</div>
+                          <div className="text-xs sm:text-sm text-gray-500 mb-1">
+                            Valid until
+                          </div>
                           <div className=" text-gray-900 text-sm sm:text-base">
-                            {format(new Date(currentTicket.validFor), "d MMM yyyy", { locale: it })}
+                            {format(
+                              new Date(currentTicket.validFor),
+                              "d MMM yyyy",
+                              { locale: it }
+                            )}
                           </div>
                         </div>
                       </div>
@@ -402,7 +468,9 @@ export default function ValidateTicket() {
                           <User className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm text-gray-500 mb-1">Owner</div>
+                          <div className="text-xs sm:text-sm text-gray-500 mb-1">
+                            Owner
+                          </div>
                           <div className=" text-gray-900 text-sm sm:text-base truncate">
                             {currentTicket.user.email}
                           </div>
@@ -417,9 +485,15 @@ export default function ValidateTicket() {
                           <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm text-gray-500 mb-1">Purchase date</div>
+                          <div className="text-xs sm:text-sm text-gray-500 mb-1">
+                            Purchase date
+                          </div>
                           <div className=" text-gray-900 text-sm sm:text-base">
-                            {format(new Date(currentTicket.purchaseDate), "d MMM yyyy", { locale: it })}
+                            {format(
+                              new Date(currentTicket.purchaseDate),
+                              "d MMM yyyy",
+                              { locale: it }
+                            )}
                           </div>
                         </div>
                       </div>
@@ -443,7 +517,9 @@ export default function ValidateTicket() {
                       <h3 className="text-teal-900 mb-1 text-sm sm:text-lg">
                         Validation Completed
                       </h3>
-                      <p className="text-teal-700 text-xs sm:text-base">{success}</p>
+                      <p className="text-teal-700 text-xs sm:text-base">
+                        {success}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -457,8 +533,12 @@ export default function ValidateTicket() {
                       <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className=" text-red-900 mb-1 text-sm sm:text-lg">Validation error</h3>
-                      <p className="text-red-700 text-xs sm:text-base">{localError}</p>
+                      <h3 className=" text-red-900 mb-1 text-sm sm:text-lg">
+                        Validation error
+                      </h3>
+                      <p className="text-red-700 text-xs sm:text-base">
+                        {localError}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -488,7 +568,9 @@ export default function ValidateTicket() {
                   {isValidating ? (
                     <>
                       <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      <span className="hidden sm:inline">Validation in progress...</span>
+                      <span className="hidden sm:inline">
+                        Validation in progress...
+                      </span>
                       <span className="sm:hidden">Validating...</span>
                     </>
                   ) : (
@@ -505,5 +587,5 @@ export default function ValidateTicket() {
         </div>
       </div>
     </div>
-  )
+  );
 }
