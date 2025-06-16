@@ -426,7 +426,7 @@ export default function TicketPage() {
   }
 
   const rawValidityDate = new Date(currentTicket.validFor);
-  const validityDate = addDays(rawValidityDate, 1); // Add one day
+  const validityDate = rawValidityDate;
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
   const isActive = currentTicket.status === "ACTIVE"
