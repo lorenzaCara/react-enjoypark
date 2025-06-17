@@ -424,40 +424,65 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 mx-4 lg:mx-0">
             {/* Tickets Section */}
             <Link to={"/ticket-manager"}>
-                <div className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden transition-all duration-300 hover:border-teal-700/30 min-h-52">
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
-                          <Ticket className="w-6 h-6 text-teal-700" />
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-light text-gray-900">Your tickets</h3>
-                          <p className="text-sm font-light text-gray-600">Manage your purchased tickets</p>
-                        </div>
+              <div className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden transition-all duration-300 hover:border-teal-700/30 min-h-52">
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
+                        <Ticket className="w-6 h-6 text-teal-700" />
                       </div>
-                      <ArrowRight className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <h3 className="text-2xl font-light text-gray-900">Your tickets</h3>
+                        <p className="text-sm font-light text-gray-600">Manage your purchased tickets</p>
+                      </div>
                     </div>
+                    <ArrowRight className="w-5 h-5 text-gray-400" />
                   </div>
+                </div>
 
-                  {loading ? (
-                    <div className="p-8 text-center min-h-52 flex items-center justify-center">
-                      <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
-                    </div>
-                  ) : activeTickets.length > 0 ? (
-                    <div className="p-6 ">
-                      <div className="space-y-4 min-h-52">
-                        {[...activeTickets]
-                          .sort((a, b) => {
-                            // Sort by status first: USED tickets go last
-                            if (a.status === "USED" && b.status !== "USED") return 1
-                            if (a.status !== "USED" && b.status === "USED") return -1
-                            // Then sort by validFor date (ascending, so soonest active tickets are first)
-                            // Utilizza parseISO anche qui per l'ordinamento
-                            return parseISO(a.validFor).getTime() - parseISO(b.validFor).getTime();
-                          })
-                          .slice(0, 2)
-                          .map((ticket) => (
+                {loading ? (
+                  <div className="p-8 text-center min-h-52 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
+                  </div>
+                ) : activeTickets.length > 0 ? (
+                  <div className="p-6 ">
+                    <div className="space-y-4 min-h-52">
+                      {[...activeTickets]
+                        .sort((a, b) => {
+                          // Sort by status first: USED tickets go last
+                          if (a.status === "USED" && b.status !== "USED") return 1
+                          if (a.status !== "USED" && b.status === "USED") return -1
+                          // Then sort by validFor date (ascending, so soonest active tickets are first)
+                          // Utilizza parseISO anche qui per l'ordinamento
+                          return parseISO(a.validFor).getTime() - parseISO(b.validFor).getTime();
+                        })
+                        .slice(0, 2)
+                        .map((ticket) => {
+                          // *** DEBUG DELLA DATA: INIZIO ***
+                          console.log("------------------------------------------");
+                          console.log("DEBUG Ticket ID:", ticket.id);
+                          console.log("DEBUG Stringa validFor ricevuta:", ticket.validFor);
+
+                          let displayDate = "Data non disponibile";
+                          try {
+                            const parsedDate = parseISO(ticket.validFor);
+                            console.log("DEBUG Oggetto Date parsato:", parsedDate);
+
+                            if (isNaN(parsedDate.getTime())) {
+                              console.error("DEBUG Errore: parseISO ha prodotto una data non valida per:", ticket.validFor);
+                              displayDate = "Data non valida";
+                            } else {
+                              displayDate = parsedDate.toLocaleDateString("it-IT");
+                              console.log("DEBUG Data formattata localmente (it-IT):", displayDate);
+                            }
+                          } catch (e) {
+                            console.error("DEBUG Errore durante il parsing o formattazione della data per ticket ID:", ticket.id, e);
+                            displayDate = "Errore di parsing";
+                          }
+                          console.log("------------------------------------------");
+                          // *** DEBUG DELLA DATA: FINE ***
+
+                          return (
                             <Link key={ticket.id} to={`/profile/${ticket.id}`}>
                               <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-teal-50 transition-all duration-300 group mb-4">
                                 <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
@@ -469,50 +494,51 @@ export default function ProfilePage() {
                                   </div>
                                   <div className="text-sm text-gray-500 flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
-                                    Valid until {parseISO(ticket.validFor).toLocaleDateString("it-IT")}
+                                    Valid until {displayDate} {/* Utilizza la variabile di debug qui */}
                                   </div>
                                 </div>
                                 <Badge
                                   className={`${
-                                    ticket.status === "USED"
-                                      ? "bg-cyan-100 text-cyan-700 hover:bg-cyan-100"
-                                      : ticket.status === "ACTIVE"
-                                        ? "bg-teal-100 text-teal-700 hover:bg-teal-100"
-                                        : ""
+                                      ticket.status === "USED"
+                                        ? "bg-cyan-100 text-cyan-700 hover:bg-cyan-100"
+                                        : ticket.status === "ACTIVE"
+                                          ? "bg-teal-100 text-teal-700 hover:bg-teal-100"
+                                          : ""
                                   }`}
                                 >
                                   {ticket.status}
                                 </Badge>
                               </div>
                             </Link>
-                          ))}
+                          )
+                        })}
 
-                        {activeTickets.length > 2 && (
-                          <div className="text-center pt-2">
-                            <Button variant="outline" size="sm" className="rounded-2xl border-teal-700/30 text-teal-700">
-                              See all ({activeTickets.length})
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                      {activeTickets.length > 2 && (
+                        <div className="text-center pt-2">
+                          <Button variant="outline" size="sm" className="rounded-2xl border-teal-700/30 text-teal-700">
+                            See all ({activeTickets.length})
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="p-8 text-center min-h-52">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Ticket className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <h4 className=" text-gray-900 mb-2">No tickets available</h4>
-                      <p className="text-gray-500 mb-6">Buy your tickets to start the adventure</p>
-                      <Link to="/tickets">
-                        <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Buy tickets
-                        </Button>
-                      </Link>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center min-h-52">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Ticket className="w-8 h-8 text-gray-400" />
                     </div>
-                  )}
-                </div>
-              </Link>
+                    <h4 className=" text-gray-900 mb-2">No tickets available</h4>
+                    <p className="text-gray-500 mb-6">Buy your tickets to start the adventure</p>
+                    <Link to="/tickets">
+                      <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Buy tickets
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </Link>
 
             {/* Planners Section */}
             <Link to={"/planner"}>
