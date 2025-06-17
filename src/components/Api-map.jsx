@@ -122,7 +122,7 @@ const GoogleMapComponent = () => {
   };
 
   return (
-    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+    <LoadScript googleMapsApiKey={import.meta.env.VITE_Maps_API_KEY}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
