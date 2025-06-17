@@ -8,7 +8,7 @@ const userContext = createContext({
   user: undefined,
   handleLogin: (data) => null,
   handleGoogleLogin: (response) => null,
-  profileImage: undefined, // Questo stato è ancora utile per la visualizzazione reattiva
+  profileImage: undefined,
   profileImageUpdate: (file) => null,
   updateUserProfile: (data) => null,
   updateUserPassword: (data) => null,
@@ -21,11 +21,34 @@ const userContext = createContext({
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(undefined);
-  const [profileImage, setProfileImage] = useState(""); // Questo stato conterrà l'URL GCS
+  const [profileImage, setProfileImage] = useState("");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const myaxios = useAxios();
   const navigate = useNavigate();
+
+  // Funzione per recuperare l'immagine dal backend
+  const fetchProfileImageFromBackend = async () => {
+    try {
+      const res = await myaxios.get("/profile/image"); // Backend restituisce JSON con imageUrl
+      if (res.data && res.data.imageUrl) {
+        setProfileImage(res.data.imageUrl);
+        // È una buona idea aggiornare l'oggetto utente nel localStorage con questo URL
+        // per evitare future chiamate non necessarie.
+        if (user) { // Assicurati che 'user' esista prima di provare ad aggiornarlo
+          const updatedUser = { ...user, profileImage: res.data.imageUrl };
+          setUser(updatedUser);
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+      } else {
+        console.warn("Backend non ha restituito un imageUrl valido per il profilo.");
+        setProfileImage(""); // Nessuna immagine
+      }
+    } catch (error) {
+      console.error("Errore durante il recupero dell'immagine del profilo dal backend:", error);
+      setProfileImage(""); // Fallback in caso di errore
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -36,6 +59,9 @@ const UserProvider = ({ children }) => {
         // Quando l'utente viene caricato, imposta subito la profileImage se esiste
         if (parsedUser.profileImage) {
           setProfileImage(parsedUser.profileImage);
+        } else {
+          // Se l'utente esiste ma non ha un'immagine di profilo, prova a recuperarla
+          fetchProfileImageFromBackend();
         }
       } catch (error) {
         console.error("Error parsing user data from localStorage:", error);
@@ -46,14 +72,31 @@ const UserProvider = ({ children }) => {
     setIsLoadingUser(false);
   }, []);
 
+  // Questo useEffect ora gestisce il recupero dell'immagine ogni volta che 'user' cambia
+  useEffect(() => {
+      if (user) {
+          // Se user.profileImage è già presente, usalo.
+          // Altrimenti, prova a fetcharlo dal backend.
+          if (user.profileImage) {
+              setProfileImage(user.profileImage);
+          } else {
+              fetchProfileImageFromBackend();
+          }
+      } else {
+          setProfileImage(""); // Pulisci se non c'è utente
+      }
+  }, [user]); // Dipende dall'oggetto user
+
+
+  // --- MODIFICA CHIAVE QUI ---
   const profileImageUpdate = async (file) => {
     const formData = new FormData();
-    formData.append("profileImage", file); // Assicurati che il nome del campo corrisponda a quello che il backend si aspetta
+    // Il backend si aspetta il campo 'image'
+    formData.append("image", file); 
 
     try {
-      // Endpoint di esempio, adatta a quello che usi nel backend
-      // Se il tuo backend non ha un endpoint con userId nei params, puoi rimuoverlo
-      const res = await myaxios.put(`/profile/update-image/${user.id}`, formData, {
+      // Usa POST all'endpoint /profile/image come definito nel backend
+      const res = await myaxios.post("/profile/image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -61,23 +104,25 @@ const UserProvider = ({ children }) => {
 
       console.log("Risposta backend upload immagine:", res.data);
 
-      if (res.data.user && res.data.user.profileImage) {
+      // Il backend restituisce 'user' aggiornato e 'imageUrl'
+      if (res.data.user && res.data.user.profileImage) { 
         const newImageUrl = res.data.user.profileImage;
-        setProfileImage(newImageUrl);
-        const updatedUser = { ...user, profileImage: newImageUrl };
+        setProfileImage(newImageUrl); // Aggiorna lo stato con l'URL GCS persistente
+        
+        // Aggiorna anche l'oggetto user nello stato e localStorage con tutti i dati aggiornati
+        const updatedUser = { ...user, ...res.data.user }; 
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
+        
         return { success: true, message: "Immagine profilo aggiornata!", imageUrl: newImageUrl };
       } else {
-        throw new Error("Il backend non ha restituito l'URL dell'immagine aggiornato.");
+        throw new Error("Il backend non ha restituito l'URL dell'immagine aggiornato nell'oggetto user.");
       }
     } catch (error) {
       console.error("Errore durante l'aggiornamento dell'immagine:", error);
       return { success: false, message: error.response?.data?.message || "Errore upload immagine." };
     }
   };
-
-  // La funzione getProfileImage è stata rimossa, poiché l'URL è gestito tramite lo stato 'user'.
 
   const updateUserProfile = async (profileData) => {
     try {
@@ -121,25 +166,23 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  // L'useEffect che chiamava getProfileImage è stato rimosso.
-
   const handlePostLoginRedirect = (loggedInUser) => {
     const redirectPathRaw = localStorage.getItem("redirectAfterLogin");
     if (redirectPathRaw) {
       try {
         const parsedPath = JSON.parse(redirectPathRaw);
-        localStorage.removeItem("redirectAfterLogin"); // Pulisci dopo aver letto
+        localStorage.removeItem("redirectAfterLogin");
         navigate(parsedPath.pathname + parsedPath.search, { replace: true });
-        return; // Reindirizzato con successo
+        return;
       } catch (e) {
-        console.error("Errore nel parsing del redirectAfterLogin:", e); // Fallback alla logica di reindirizzamento normale se il parsing fallisce
+        console.error("Errore nel parsing del redirectAfterLogin:", e);
       }
-    } // Logica di reindirizzamento predefinita se non c'è redirectAfterLogin o se il parsing fallisce
+    }
 
     if (loggedInUser.role === "STAFF") {
-      navigate("/validate-ticket", { replace: true }); // Reindirizza staff a validate-ticket
+      navigate("/validate-ticket", { replace: true });
     } else {
-      navigate("/", { replace: true }); // Reindirizza altri utenti alla home
+      navigate("/", { replace: true });
     }
   };
 
@@ -149,11 +192,7 @@ const UserProvider = ({ children }) => {
       localStorage.setItem("token", result.data.jwt);
       localStorage.setItem("user", JSON.stringify(result.data.user));
       setUser(result.data.user);
-      // Imposta profileImage anche qui dopo il login, se presente nell'oggetto user
-      if (result.data.user.profileImage) {
-          setProfileImage(result.data.user.profileImage);
-      }
-
+      // L'useEffect sopra gestirà l'impostazione di profileImage dopo setUser
       handlePostLoginRedirect(result.data.user);
     } catch (error) {
       console.log("Error during login:", error);
@@ -192,10 +231,7 @@ const UserProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       const loggedInUser = res.data.user;
       setUser(loggedInUser);
-      // Imposta profileImage anche qui dopo il login con Google
-      if (loggedInUser.profileImage) {
-          setProfileImage(loggedInUser.profileImage);
-      }
+      // L'useEffect sopra gestirà l'impostazione di profileImage dopo setUser
       console.log("handleGoogleLogin - Utente impostato nello stato locale.");
 
       handlePostLoginRedirect(loggedInUser);
