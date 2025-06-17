@@ -10,7 +10,7 @@ import AttractionPlannerDrawer from "@/components/AttractionPlannerDrawer"
 import gsap from "gsap"
 
 export default function AttractionsPage() {
-  const { attractions, isLoading: attractionsLoading, error: attractionsError } = useAttractions()
+  const { attractions, attractionsLoading, error: attractionsError } = useAttractions()
   const { purchasedTickets, tickets: ticketTypes, loading: ticketsLoading, error: ticketsError } = useTickets()
   const { createPlanner, planners, updatePlanner } = usePlanners()
   const { toast } = useToast()
