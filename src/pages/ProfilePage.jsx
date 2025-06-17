@@ -30,7 +30,7 @@ import {
   Loader2,
   HelpingHand,
 } from "lucide-react"
-import { Link } from "react-router"
+import { Link } from "react-router" // Assicurati che sia react-router-dom se stai usando Link per la navigazione
 import { useNotifications } from "@/contexts/NotificationProvider"
 import { useUser } from "@/contexts/UserProvider"
 import { useTickets } from "@/contexts/TicketsProvider"
@@ -43,7 +43,7 @@ import BookingManager from "@/components/BookingManager"
 import { toast } from "@/hooks/use-toast"
 import DeletePlannerDialog from "@/components/Delete-planner-dialog"
 import ManagePlannerDialog from "@/components/Manage-planner-dialog"
-import { parseISO, startOfDay } from "date-fns"
+import { parseISO } from "date-fns" // <--- Importazione aggiornata: solo parseISO
 
 export default function ProfilePage() {
   const { user, profileImage, handleLogout } = useUser()
@@ -135,8 +135,12 @@ export default function ProfilePage() {
   // Funzione per gestire le date in modo sicuro
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null
-    return parseISO(dateStr).toISOString().split("T")[0] // <-- MANTENUTO parseISO QUI
+    // Questo è il posto in cui parseISO è usato per ottenere una data UTC
+    // e poi toISOString().split('T')[0] estrae la data in formato "YYYY-MM-DD"
+    // basandosi sul fuso orario UTC della stringa originale.
+    return parseISO(dateStr).toISOString().split("T")[0]
   }
+
 
   // Trova il biglietto associato al planner selezionato
   const getTicketForPlanner = (planner) => {
@@ -458,32 +462,33 @@ export default function ProfilePage() {
                         })
                         .slice(0, 2)
                         .map((ticket) => {
-                          // *** DEBUG DELLA DATA: INIZIO ***
+                          // *** DEBUG E VISUALIZZAZIONE DELLA DATA: INIZIO ***
                           console.log("------------------------------------------");
                           console.log("DEBUG Ticket ID:", ticket.id);
                           console.log("DEBUG Stringa validFor ricevuta:", ticket.validFor);
 
                           let displayDate = "Data non disponibile";
                           try {
-                            const parsedDate = parseISO(ticket.validFor);
-                            // DEBUG: Aggiungi un log qui per vedere la data prima di startOfDay
-                            console.log("DEBUG Parsed Date (before startOfDay):", parsedDate);
+                            const utcDate = parseISO(ticket.validFor); // L'oggetto Date è ora UTC
 
-                            // Applica startOfDay per riportare l'ora a mezzanotte del giorno CORRETTO nel fuso orario locale
-                            const localizedDate = startOfDay(parsedDate);
-                            console.log("DEBUG Localized Date (after startOfDay):", localizedDate);
-
-                            if (isNaN(localizedDate.getTime())) {
-                              console.error("DEBUG Errore: la data localizzata non è valida per:", ticket.validFor);
+                            if (isNaN(utcDate.getTime())) {
+                              console.error("DEBUG Errore: parseISO ha prodotto una data non valida per:", ticket.validFor);
                               displayDate = "Data non valida";
                             } else {
-                              displayDate = localizedDate.toLocaleDateString("it-IT");
-                              console.log("DEBUG Data formattata localmente (it-IT) dopo startOfDay:", displayDate);
+                              // Questa è la parte cruciale: estrae le componenti della data in UTC
+                              // per evitare lo shift del fuso orario locale.
+                              const year = utcDate.getUTCFullYear();
+                              const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0'); // Mese è 0-indexed
+                              const day = utcDate.getUTCDate().toString().padStart(2, '0');
+                              displayDate = `${day}/${month}/${year}`;
+                              console.log("DEBUG Data formattata direttamente da componenti UTC:", displayDate);
                             }
                           } catch (e) {
                             console.error("DEBUG Errore durante il parsing o formattazione della data per ticket ID:", ticket.id, e);
                             displayDate = "Errore di parsing";
-  }
+                          }
+                          console.log("------------------------------------------");
+                          // *** DEBUG DELLA DATA: FINE ***
 
                           return (
                             <Link key={ticket.id} to={`/profile/${ticket.id}`}>
