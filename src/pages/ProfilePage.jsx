@@ -43,7 +43,7 @@ import BookingManager from "@/components/BookingManager"
 import { toast } from "@/hooks/use-toast"
 import DeletePlannerDialog from "@/components/Delete-planner-dialog"
 import ManagePlannerDialog from "@/components/Manage-planner-dialog"
-import { parseISO } from "date-fns" 
+import { parseISO, startOfDay } from "date-fns";
 
 export default function ProfilePage() {
   const { user, profileImage, handleLogout } = useUser()
@@ -466,21 +466,24 @@ export default function ProfilePage() {
                           let displayDate = "Data non disponibile";
                           try {
                             const parsedDate = parseISO(ticket.validFor);
-                            console.log("DEBUG Oggetto Date parsato:", parsedDate);
+                            // DEBUG: Aggiungi un log qui per vedere la data prima di startOfDay
+                            console.log("DEBUG Parsed Date (before startOfDay):", parsedDate);
 
-                            if (isNaN(parsedDate.getTime())) {
-                              console.error("DEBUG Errore: parseISO ha prodotto una data non valida per:", ticket.validFor);
+                            // Applica startOfDay per riportare l'ora a mezzanotte del giorno CORRETTO nel fuso orario locale
+                            const localizedDate = startOfDay(parsedDate);
+                            console.log("DEBUG Localized Date (after startOfDay):", localizedDate);
+
+                            if (isNaN(localizedDate.getTime())) {
+                              console.error("DEBUG Errore: la data localizzata non è valida per:", ticket.validFor);
                               displayDate = "Data non valida";
                             } else {
-                              displayDate = parsedDate.toLocaleDateString("it-IT");
-                              console.log("DEBUG Data formattata localmente (it-IT):", displayDate);
+                              displayDate = localizedDate.toLocaleDateString("it-IT");
+                              console.log("DEBUG Data formattata localmente (it-IT) dopo startOfDay:", displayDate);
                             }
                           } catch (e) {
                             console.error("DEBUG Errore durante il parsing o formattazione della data per ticket ID:", ticket.id, e);
                             displayDate = "Errore di parsing";
-                          }
-                          console.log("------------------------------------------");
-                          // *** DEBUG DELLA DATA: FINE ***
+  }
 
                           return (
                             <Link key={ticket.id} to={`/profile/${ticket.id}`}>
