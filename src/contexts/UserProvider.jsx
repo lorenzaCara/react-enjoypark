@@ -42,26 +42,44 @@ const UserProvider = ({ children }) => {
 
   const profileImageUpdate = async (file) => {
     const formData = new FormData();
-    formData.append("image", file);
-    const res = await myaxios.post("/profile/image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      responseType: "blob",
-    });
-    setProfileImage(URL.createObjectURL(res.data));
+    formData.append("profileImage", file); // Assicurati che il nome del campo corrisponda a quello che il backend si aspetta (era "image", ora "profileImage" come nello schema)
+    try {
+      // NON aspettarti un BLOB come risposta, ma JSON contenente il nuovo URL
+      const res = await myaxios.put(`/profile/update-image/${user.id}`, formData, { // Esempio: /profile/update-image/:userId
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        // responseType: "blob", // Rimuovi o commenta questa riga
+      });
+
+      console.log("Risposta backend upload immagine:", res.data);
+
+      // Il backend dovrebbe restituire l'utente aggiornato o almeno il nuovo URL dell'immagine
+      if (res.data.user && res.data.user.profileImage) {
+        const newImageUrl = res.data.user.profileImage;
+        setProfileImage(newImageUrl); // Aggiorna lo stato con l'URL GCS persistente
+        // Aggiorna anche l'oggetto user nello stato e localStorage se il backend restituisce l'utente completo
+        const updatedUser = { ...user, profileImage: newImageUrl };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        return { success: true, message: "Immagine profilo aggiornata!", imageUrl: newImageUrl };
+      } else {
+        throw new Error("Il backend non ha restituito l'URL dell'immagine aggiornato.");
+      }
+    } catch (error) {
+      console.error("Errore durante l'aggiornamento dell'immagine:", error);
+      return { success: false, message: error.response?.data?.message || "Errore upload immagine." };
+    }
   };
 
-  const getProfileImage = async () => {
-    try {
-      const res = await myaxios.get("/profile/image", {
-        responseType: "blob",
-      });
-      setProfileImage(URL.createObjectURL(res.data));
-    } catch (error) {
-      console.error("Errore durante il recupero dell'immagine:", error);
-    }
-  }; // Nuova funzione per aggiornare i dati del profilo
+  // >>> getProfileImage NON È PIÙ NECESSARIA SE l'URL è salvato nell'oggetto utente <<<
+  // L'URL dell'immagine dovrebbe già essere parte dell'oggetto 'user' che salvi in localStorage.
+  // getProfileImage non dovrebbe più essere usata per ottenere un BLOB.
+  // Se hai una route backend che restituisce l'immagine come BLOB (es. /profile/image/:userId),
+  // dovresti cambiarla per restituire l'URL direttamente, o non usarla se l'URL è già nell'oggetto utente.
+  // Se la tua applicazione ha bisogno di recuperare immagini dinamiche da GCS che non sono l'immagine profilo utente,
+  // allora quella route ha senso, ma non per l'immagine del profilo utente.
+
 
   const updateUserProfile = async (profileData) => {
     try {
