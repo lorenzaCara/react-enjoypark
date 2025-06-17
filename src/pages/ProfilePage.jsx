@@ -43,7 +43,8 @@ import BookingManager from "@/components/BookingManager"
 import { toast } from "@/hooks/use-toast"
 import DeletePlannerDialog from "@/components/Delete-planner-dialog"
 import ManagePlannerDialog from "@/components/Manage-planner-dialog"
-import { parseISO, startOfDay } from "date-fns";
+import { parseISO, format } from "date-fns"
+import { utcToZonedTime } from "date-fns-tz"
 
 export default function ProfilePage() {
   const { user, profileImage, handleLogout } = useUser()
@@ -452,38 +453,46 @@ export default function ProfilePage() {
                           // Sort by status first: USED tickets go last
                           if (a.status === "USED" && b.status !== "USED") return 1
                           if (a.status !== "USED" && b.status === "USED") return -1
-                          // Then sort by validFor date (ascending, so soonest active tickets are first)
-                          // Utilizza parseISO anche qui per l'ordinamento
+                          // Per l'ordinamento, prendiamo la data UTC e la consideriamo per il confronto di giorni.
+                          // Se sono alla stessa ora, questo ordinerà correttamente per data.
                           return parseISO(a.validFor).getTime() - parseISO(b.validFor).getTime();
                         })
                         .slice(0, 2)
                         .map((ticket) => {
-                          // *** DEBUG DELLA DATA: INIZIO ***
+                          // *** DEBUG E VISUALIZZAZIONE DELLA DATA: INIZIO ***
                           console.log("------------------------------------------");
                           console.log("DEBUG Ticket ID:", ticket.id);
                           console.log("DEBUG Stringa validFor ricevuta:", ticket.validFor);
 
                           let displayDate = "Data non disponibile";
                           try {
-                            const parsedDate = parseISO(ticket.validFor);
-                            // DEBUG: Aggiungi un log qui per vedere la data prima di startOfDay
-                            console.log("DEBUG Parsed Date (before startOfDay):", parsedDate);
+                            const utcDate = parseISO(ticket.validFor); // L'oggetto Date è ora UTC
 
-                            // Applica startOfDay per riportare l'ora a mezzanotte del giorno CORRETTO nel fuso orario locale
-                            const localizedDate = startOfDay(parsedDate);
-                            console.log("DEBUG Localized Date (after startOfDay):", localizedDate);
-
-                            if (isNaN(localizedDate.getTime())) {
-                              console.error("DEBUG Errore: la data localizzata non è valida per:", ticket.validFor);
-                              displayDate = "Data non valida";
+                            // Per visualizzare nel fuso orario italiano (CEST), senza farla scattare al giorno dopo
+                            // Prendiamo il giorno UTC e lo formattiamo direttamente.
+                            // OPPURE: Convertiamo a un fuso orario specifico e poi formattiamo.
+                            // Usiamo format per controllare come viene visualizzata la data.
+                            // 'dd/MM/yyyy' formatterà la data UTC, evitando lo shift del fuso orario locale.
+                            if (isNaN(utcDate.getTime())) {
+                                console.error("DEBUG Errore: parseISO ha prodotto una data non valida per:", ticket.validFor);
+                                displayDate = "Data non valida";
                             } else {
-                              displayDate = localizedDate.toLocaleDateString("it-IT");
-                              console.log("DEBUG Data formattata localmente (it-IT) dopo startOfDay:", displayDate);
+                                // Vogliamo visualizzare la data come se fosse il giorno "puro" della stringa ISO
+                                // senza che l'offset di fuso orario la sposti al giorno successivo per visualizzazione.
+                                // Il modo più semplice è usare le componenti UTC dell'oggetto Date
+                                // e poi formattarle.
+                                const year = utcDate.getUTCFullYear();
+                                const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0'); // Mese è 0-indexed
+                                const day = utcDate.getUTCDate().toString().padStart(2, '0');
+                                displayDate = `${day}/${month}/${year}`;
+                                console.log("DEBUG Data formattata direttamente da componenti UTC:", displayDate);
                             }
                           } catch (e) {
                             console.error("DEBUG Errore durante il parsing o formattazione della data per ticket ID:", ticket.id, e);
                             displayDate = "Errore di parsing";
-  }
+                          }
+                          console.log("------------------------------------------");
+                          // *** DEBUG DELLA DATA: FINE ***
 
                           return (
                             <Link key={ticket.id} to={`/profile/${ticket.id}`}>
