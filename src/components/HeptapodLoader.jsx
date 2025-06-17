@@ -275,19 +275,6 @@ export default function HeptapodLoader({ onComplete }) {
           <p className="text-teal-200/80 text-sm font-light tracking-wider">Loading your experience...</p>
         </div>
 
-        {/* Loading Dots */}
-        <div className="flex justify-center mt-8 space-x-2">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="w-2 h-2 bg-teal-200/60 rounded-full animate-pulse shadow-lg"
-              style={{
-                animationDelay: `${i * 0.4}s`,
-                animationDuration: "2s",
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Bottom Decorative Elements */}

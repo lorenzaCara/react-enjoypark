@@ -63,14 +63,12 @@ export default function ValidateTicket() {
       return;
     }
 
-    // Rimuovi l'elemento dal localStorage una volta che l'utente è autenticato.
-    // Questo è importante per evitare reindirizzamenti indesiderati in sessioni future.
     localStorage.removeItem("redirectAfterLogin");
 
     if (user.role !== "STAFF") {
       navigate("/unauthorized");
       return;
-    } // If we have a code, fetch the ticket
+    }
 
     const fetchTicket = async () => {
       setIsLoading(true);

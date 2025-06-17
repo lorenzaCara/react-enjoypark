@@ -5,9 +5,10 @@ import { format } from "date-fns"
 import { it } from "date-fns/locale"
 import { ArrowLeft, Calendar, Clock, QrCode, Tag, AlertCircle } from "lucide-react"
 import gsap from "gsap"
+import { Button } from "@/components/ui/button"
 
 export default function MobileTicketsPage() {
-  const { purchasedTickets, loading } = useTickets()
+  const { purchasedTickets, loading, error: ticketsError } = useTickets()
   const [activeTickets, setActiveTickets] = useState([])
 
   useEffect(() => {
@@ -26,6 +27,18 @@ export default function MobileTicketsPage() {
       </div>
     )
   }
+
+  if ( ticketsError ) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
+            <h3 className="text-lg mb-2">Loading error</h3>
+            <p className="mb-4">An error occurred while loading the data</p>
+            <Button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white rounded-2xl">Try again</Button>
+          </div>
+        </div>
+      )
+    }
 
   return (
     <div className="min-h-screen mx-auto max-w-4xl px-4 py-6">

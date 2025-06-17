@@ -124,19 +124,11 @@ const NotificationPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="text-center bg-white p-8 rounded-3xl border-2 border-gray-100 max-w-md shadow-lg">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-8 w-8 text-red-600" />
-          </div>
-          <h2 className="text-2xl font-light text-gray-900 mb-3">Loading error</h2>
-          <p className="text-gray-600 mb-6 leading-relaxed">{error}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-8 py-3"
-          >
-            Try again
-          </Button>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
+          <h3 className="text-lg mb-2">Loading error</h3>
+          <p className="mb-4">An error occurred while loading the data</p>
+          <Button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white rounded-2xl">Try again</Button>
         </div>
       </div>
     )

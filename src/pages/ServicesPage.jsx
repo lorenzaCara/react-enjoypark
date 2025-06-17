@@ -97,15 +97,9 @@ const ServicesPage = () => {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
-          <AlertCircle className="h-10 w-10 mx-auto mb-3 text-red-500" />
-          <h3 className="text-lg mb-2">Unable to load services</h3>
-          <p>{error}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl"
-          >
-            Try again
-          </Button>
+          <h3 className="text-lg mb-2">Loading error</h3>
+          <p className="mb-4">An error occurred while loading the data</p>
+          <Button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white rounded-2xl">Try again</Button>
         </div>
       </div>
     )

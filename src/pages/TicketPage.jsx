@@ -382,7 +382,7 @@ export default function TicketPage() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-teal-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Caricamento biglietto...</p> {/* Localized */}
+          <p className="text-gray-600">Caricamento biglietto...</p> 
         </div>
       </div>
     )
@@ -392,13 +392,12 @@ export default function TicketPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
-          <AlertTriangle className="h-10 w-10 mx-auto mb-3 text-red-500" />
-          <h3 className="text-lg mb-2">Errore di caricamento</h3> {/* Localized */}
+          <h3 className="text-lg mb-2">Loading Error</h3> 
           <p className="mb-4">{errorTicket || currentTicketError}</p>
           <Link to="/profile">
             <Button className="bg-red-600 hover:bg-red-700 text-white rounded-2xl">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Torna al Profilo {/* Localized */}
+              Go back to profile
             </Button>
           </Link>
         </div>

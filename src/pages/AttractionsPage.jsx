@@ -10,8 +10,8 @@ import AttractionPlannerDrawer from "@/components/AttractionPlannerDrawer"
 import gsap from "gsap"
 
 export default function AttractionsPage() {
-  const { attractions, isLoading, error } = useAttractions()
-  const { purchasedTickets, tickets: ticketTypes, loading: ticketsLoading } = useTickets()
+  const { attractions, isLoading: attractionsLoading, error: attractionsError } = useAttractions()
+  const { purchasedTickets, tickets: ticketTypes, loading: ticketsLoading, error: ticketsError } = useTickets()
   const { createPlanner, planners, updatePlanner } = usePlanners()
   const { toast } = useToast()
 
@@ -221,6 +221,30 @@ export default function AttractionsPage() {
         }
       }
     }
+
+    // Loading state
+      if (attractionsLoading || ticketsLoading ) {
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-teal-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+            </div>
+          </div>
+        )
+      }
+    
+      if (attractionsError || ticketsError ) {
+        return (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
+              <h3 className="text-lg mb-2">Loading error</h3>
+              <p className="mb-4">An error occurred while loading the data</p>
+              <Button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white rounded-2xl">Try again</Button>
+            </div>
+          </div>
+        )
+      }
 
     return (
       <div
