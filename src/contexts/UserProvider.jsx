@@ -8,7 +8,7 @@ const userContext = createContext({
   user: undefined,
   handleLogin: (data) => null,
   handleGoogleLogin: (response) => null,
-  profileImage: undefined,
+  profileImage: undefined, // Questo stato è ancora utile per la visualizzazione reattiva
   profileImageUpdate: (file) => null,
   updateUserProfile: (data) => null,
   updateUserPassword: (data) => null,
@@ -21,7 +21,7 @@ const userContext = createContext({
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(undefined);
-  const [profileImage, setProfileImage] = useState("");
+  const [profileImage, setProfileImage] = useState(""); // Questo stato conterrà l'URL GCS
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const myaxios = useAxios();
@@ -31,10 +31,16 @@ const UserProvider = ({ children }) => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        // Quando l'utente viene caricato, imposta subito la profileImage se esiste
+        if (parsedUser.profileImage) {
+          setProfileImage(parsedUser.profileImage);
+        }
       } catch (error) {
         console.error("Error parsing user data from localStorage:", error);
         setUser(undefined);
+        setProfileImage(""); // Resetta anche l'immagine in caso di errore
       }
     }
     setIsLoadingUser(false);
@@ -42,23 +48,22 @@ const UserProvider = ({ children }) => {
 
   const profileImageUpdate = async (file) => {
     const formData = new FormData();
-    formData.append("profileImage", file); // Assicurati che il nome del campo corrisponda a quello che il backend si aspetta (era "image", ora "profileImage" come nello schema)
+    formData.append("profileImage", file); // Assicurati che il nome del campo corrisponda a quello che il backend si aspetta
+
     try {
-      // NON aspettarti un BLOB come risposta, ma JSON contenente il nuovo URL
-      const res = await myaxios.put(`/profile/update-image/${user.id}`, formData, { // Esempio: /profile/update-image/:userId
+      // Endpoint di esempio, adatta a quello che usi nel backend
+      // Se il tuo backend non ha un endpoint con userId nei params, puoi rimuoverlo
+      const res = await myaxios.put(`/profile/update-image/${user.id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        // responseType: "blob", // Rimuovi o commenta questa riga
       });
 
       console.log("Risposta backend upload immagine:", res.data);
 
-      // Il backend dovrebbe restituire l'utente aggiornato o almeno il nuovo URL dell'immagine
       if (res.data.user && res.data.user.profileImage) {
         const newImageUrl = res.data.user.profileImage;
-        setProfileImage(newImageUrl); // Aggiorna lo stato con l'URL GCS persistente
-        // Aggiorna anche l'oggetto user nello stato e localStorage se il backend restituisce l'utente completo
+        setProfileImage(newImageUrl);
         const updatedUser = { ...user, profileImage: newImageUrl };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -72,18 +77,11 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  // >>> getProfileImage NON È PIÙ NECESSARIA SE l'URL è salvato nell'oggetto utente <<<
-  // L'URL dell'immagine dovrebbe già essere parte dell'oggetto 'user' che salvi in localStorage.
-  // getProfileImage non dovrebbe più essere usata per ottenere un BLOB.
-  // Se hai una route backend che restituisce l'immagine come BLOB (es. /profile/image/:userId),
-  // dovresti cambiarla per restituire l'URL direttamente, o non usarla se l'URL è già nell'oggetto utente.
-  // Se la tua applicazione ha bisogno di recuperare immagini dinamiche da GCS che non sono l'immagine profilo utente,
-  // allora quella route ha senso, ma non per l'immagine del profilo utente.
-
+  // La funzione getProfileImage è stata rimossa, poiché l'URL è gestito tramite lo stato 'user'.
 
   const updateUserProfile = async (profileData) => {
     try {
-      const res = await myaxios.put("/profile/update", profileData); // Aggiorna l'utente nel state e nel localStorage
+      const res = await myaxios.put("/profile/update", profileData);
 
       const updatedUser = { ...user, ...profileData };
       setUser(updatedUser);
@@ -103,7 +101,7 @@ const UserProvider = ({ children }) => {
           "Errore durante l'aggiornamento del profilo",
       };
     }
-  }; // Nuova funzione per aggiornare la password dall'area profilo
+  };
 
   const updateUserPassword = async (passwordData) => {
     try {
@@ -123,11 +121,7 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      getProfileImage();
-    }
-  }, [user]); // Funzione helper per la logica di reindirizzamento condivisa
+  // L'useEffect che chiamava getProfileImage è stato rimosso.
 
   const handlePostLoginRedirect = (loggedInUser) => {
     const redirectPathRaw = localStorage.getItem("redirectAfterLogin");
@@ -154,7 +148,11 @@ const UserProvider = ({ children }) => {
       const result = await myaxios.post("/login", data);
       localStorage.setItem("token", result.data.jwt);
       localStorage.setItem("user", JSON.stringify(result.data.user));
-      setUser(result.data.user); // Chiama la funzione helper per la logica di reindirizzamento
+      setUser(result.data.user);
+      // Imposta profileImage anche qui dopo il login, se presente nell'oggetto user
+      if (result.data.user.profileImage) {
+          setProfileImage(result.data.user.profileImage);
+      }
 
       handlePostLoginRedirect(result.data.user);
     } catch (error) {
@@ -192,9 +190,13 @@ const UserProvider = ({ children }) => {
 
       localStorage.setItem("token", res.data.jwt);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      const loggedInUser = res.data.user; // Salva l'utente prima di impostarlo
-      setUser(loggedInUser); // Imposta l'utente nello stato
-      console.log("handleGoogleLogin - Utente impostato nello stato locale."); // Chiama la funzione helper per la logica di reindirizzamento
+      const loggedInUser = res.data.user;
+      setUser(loggedInUser);
+      // Imposta profileImage anche qui dopo il login con Google
+      if (loggedInUser.profileImage) {
+          setProfileImage(loggedInUser.profileImage);
+      }
+      console.log("handleGoogleLogin - Utente impostato nello stato locale.");
 
       handlePostLoginRedirect(loggedInUser);
     } catch (error) {
@@ -215,10 +217,10 @@ const UserProvider = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user"); // Rimuovi anche la chiave di reindirizzamento al logout per pulizia
+    localStorage.removeItem("user");
     localStorage.removeItem("redirectAfterLogin");
     setUser(undefined);
-    setProfileImage("");
+    setProfileImage(""); // Pulisci l'immagine del profilo al logout
     navigate("/login");
   };
 
@@ -281,12 +283,12 @@ const UserProvider = ({ children }) => {
       };
     }
   };
+
   const togglePushNotifications = async (newValue) => {
     try {
-      // Chiamata API per aggiornare allowNotifications
       await myaxios.patch("/profile/notifications-toggle", {
         allowNotifications: newValue,
-      }); // Aggiorna lo stato locale user e localStorage
+      });
       const updatedUser = { ...user, allowNotifications: newValue };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -301,6 +303,7 @@ const UserProvider = ({ children }) => {
       };
     }
   };
+
   return (
     <userContext.Provider
       value={{
@@ -319,7 +322,7 @@ const UserProvider = ({ children }) => {
         togglePushNotifications,
       }}
     >
-            {children}   {" "}
+      {children}
     </userContext.Provider>
   );
 };
