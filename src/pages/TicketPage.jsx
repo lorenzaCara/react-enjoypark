@@ -1,7 +1,7 @@
 import { useTickets } from "@/contexts/TicketsProvider"
 import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate, Link } from "react-router"
-import { format, startOfDay, parseISO } from "date-fns" // Import parseISO
+import { format, parseISO, startOfDay } from "date-fns" 
 import { it } from "date-fns/locale"
 import gsap from "gsap"
 import {
@@ -423,11 +423,21 @@ export default function TicketPage() {
     )
   }
 
-  const validityDate = parseISO(currentTicket.validFor);
+  let validityDate;
+  try {
+    
+    const datePart = currentTicket.validFor.split('T')[0];
+    
+    const [year, month, day] = datePart.split('-').map(Number);
+    validityDate = new Date(year, month - 1, day); 
+  } catch (error) {
+    console.error("Errore nella parsificazione di validFor:", currentTicket.validFor, error);
+    validityDate = startOfDay(parseISO(currentTicket.validFor));
+  }
+
 
   console.log("currentTicket.validFor (original):", currentTicket.validFor);
-  console.log("validityDate (parsed without startOfDay):", validityDate); 
-
+  console.log("validityDate (forced to local day):", validityDate); // Verifica questo valore nella console
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
   const isActive = currentTicket.status === "ACTIVE"
