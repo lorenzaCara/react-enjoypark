@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router"
 import TicketDetailDialog from "./TicketDetailDialog"
 import { DeleteTicketDialog } from "./DeleteTicketDialog"
+import { parseISO } from "date-fns" // Import parseISO
 
 export default function TicketsManager() {
   const { user } = useUser()
@@ -73,7 +74,7 @@ export default function TicketsManager() {
       if (window.innerWidth >= 1024) {
         return 80
       } else {
-        return 48
+          return 48
       }
     }
   }
@@ -132,8 +133,9 @@ export default function TicketsManager() {
 
   // Sort tickets by date (most recent first)
   const sortedTickets = [...getFilteredTickets()].sort((a, b) => {
-    const dateA = new Date(a.validFor || a.purchaseDate)
-    const dateB = new Date(b.validFor || b.purchaseDate)
+    // Use parseISO and compare UTC times for consistent sorting
+    const dateA = parseISO(a.validFor || a.purchaseDate).getTime();
+    const dateB = parseISO(b.validFor || b.purchaseDate).getTime();
     return dateB - dateA
   })
 
@@ -158,11 +160,20 @@ export default function TicketsManager() {
   const formatDate = (dateString) => {
     if (!dateString) return "Date not specified"
 
-    return new Date(dateString).toLocaleDateString("it-IT", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+    try {
+      const utcDate = parseISO(dateString); // Returns a Date object representing the UTC time
+      if (isNaN(utcDate.getTime())) {
+        return "Invalid Date";
+      }
+      // Extract UTC components to avoid local timezone issues
+      const year = utcDate.getUTCFullYear();
+      const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0');
+      const day = utcDate.getUTCDate().toString().padStart(2, '0');
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      console.error("Error formatting date:", dateString, e);
+      return "Error formatting date";
+    }
   }
 
   const getTicketTypeDetails = (ticket) => {
@@ -447,7 +458,7 @@ export default function TicketsManager() {
                         </div>
                         <div>
                           <div className="text-xs text-gray-500 mb-1">Valid until</div>
-                          <div className=" text-gray-900">{formatDate(ticket.validFor)}</div>
+                          <div className=" text-gray-900">{formatDate(ticket.validFor || ticket.purchaseDate)}</div>
                         </div>
                       </div>
 
@@ -541,7 +552,7 @@ export default function TicketsManager() {
           isOpen={showTicketDetail}
           onClose={() => setShowTicketDetail(false)}
           ticket={selectedTicket}
-          formatDate={formatDate}
+          formatDate={formatDate} // Pass formatDate to the dialog if it needs to format dates
           getTicketStatusColor={getTicketStatusColor}
         />
 
