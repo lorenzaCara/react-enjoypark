@@ -1,8 +1,8 @@
 import { useTickets } from "@/contexts/TicketsProvider"
 import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate, Link } from "react-router"
-import { format, parseISO, startOfDay } from "date-fns" 
-import { it } from "date-fns/locale"
+import { format, parseISO, startOfDay } from "date-fns"
+import { enUS } from "date-fns/locale"
 import gsap from "gsap"
 import {
   Calendar,
@@ -72,7 +72,7 @@ export default function TicketPage() {
     }
   }, [ticketId, purchasedTickets, fetchTicketByCode, setCurrentTicket, setCurrentTicketError])
 
-  // Scroll effect per header fisso
+  // Scroll effect for fixed header
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -112,7 +112,7 @@ export default function TicketPage() {
     }
   }
 
-  // Cattura l'immagine del QR code quando il componente è montato o il ticket cambia
+  // Capture QR code image when component mounts or ticket changes
   useEffect(() => {
     if (currentTicket && qrCodeRef.current) {
       captureQRCode()
@@ -190,11 +190,11 @@ export default function TicketPage() {
   const getStatusText = (status) => {
     switch (status) {
       case "ACTIVE":
-        return "Attivo" // Localized
+        return "Active"
       case "EXPIRED":
-        return "Scaduto" // Localized
+        return "Expired"
       case "USED":
-        return "Usato" // Localized
+        return "Used"
       default:
         return status
     }
@@ -203,11 +203,11 @@ export default function TicketPage() {
   const getPaymentMethodText = (method) => {
     switch (method) {
       case "CREDIT_CARD":
-        return "Carta di credito" // Localized
+        return "Credit Card"
       case "PAYPAL":
         return "PayPal"
       default:
-        return method || "Non specificato" // Localized
+        return method || "Not specified"
     }
   }
 
@@ -254,16 +254,16 @@ export default function TicketPage() {
 
       toast({
         variant: "success",
-        title: "QR Code scaricato", // Localized
-        description: "Il QR code è stato salvato nella tua cartella download.", // Localized
-        className: "bg-white text-gray-900 border border-white"
+        title: "QR Code downloaded",
+        description: "The QR code has been saved to your downloads folder.",
+        className: "bg-white text-gray-900 border border-white",
       })
     } catch (error) {
       console.error("Error during download:", error)
       toast({
         variant: "destructive",
-        title: "Errore di download", // Localized
-        description: "Si è verificato un errore durante il download del QR code.", // Localized
+        title: "Download error",
+        description: "An error occurred while downloading the QR code.",
       })
     }
   }
@@ -271,8 +271,8 @@ export default function TicketPage() {
   // Share ticket
   const handleShareTicket = async () => {
     const shareData = {
-      title: `Biglietto Heptapod Park - ${currentTicket.ticketType?.name || `Biglietto #${currentTicket.id}`}`, // Localized
-      text: `Il mio biglietto per Heptapod Park valido fino al ${format(new Date(currentTicket.validFor), "d MMMM", { locale: it })}`, // Localized and using 'it' locale
+      title: `Heptapod Park Ticket - ${currentTicket.ticketType?.name || `Ticket #${currentTicket.id}`}`,
+      text: `My ticket for Heptapod Park valid until ${format(new Date(currentTicket.validFor), "MMMM d", { locale: enUS })}`,
       url: window.location.href,
     }
 
@@ -281,17 +281,17 @@ export default function TicketPage() {
         await navigator.share(shareData)
         toast({
           variant: "success",
-          title: "Biglietto Condiviso", // Localized
-          description: "Il biglietto è stato condiviso con successo.", // Localized
-          className: "bg-white text-gray-900 border border-white"
+          title: "Ticket Shared",
+          description: "The ticket has been shared successfully.",
+          className: "bg-white text-gray-900 border border-white",
         })
       } else {
         await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
         toast({
           variant: "success",
-          title: "Link Copiato", // Localized
-          description: "Il link del biglietto è stato copiato negli appunti.", // Localized
-          className: "bg-white text-gray-900 border border-white"
+          title: "Link Copied",
+          description: "The ticket link has been copied to your clipboard.",
+          className: "bg-white text-gray-900 border border-white",
         })
       }
     } catch (error) {
@@ -299,21 +299,21 @@ export default function TicketPage() {
         await navigator.clipboard.writeText(window.location.href)
         toast({
           variant: "success",
-          title: "Link Copiato", // Localized
-          description: "Il link del biglietto è stato copiato negli appunti.", // Localized
-          className: "bg-white text-gray-900 border border-white"
+          title: "Link Copied",
+          description: "The ticket link has been copied to your clipboard.",
+          className: "bg-white text-gray-900 border border-white",
         })
       } catch (clipboardError) {
         toast({
           variant: "destructive",
-          title: "Errore di Condivisione", // Localized
-          description: "Non è stato possibile condividere il biglietto.", // Localized
+          title: "Sharing Error",
+          description: "It was not possible to share the ticket.",
         })
       }
     }
   }
 
-  // Print ticket direttamente senza aprire nuova finestra
+  // Print ticket directly without opening a new window
   const handlePrintTicket = () => {
     try {
       // Ensure the QR code image is captured
@@ -328,16 +328,16 @@ export default function TicketPage() {
 
       toast({
         variant: "success",
-        title: "Stampa avviata", // Localized
-        description: "La finestra di stampa si aprirà a breve.", // Localized
-        className: "bg-white text-gray-900 border border-white"
+        title: "Print started",
+        description: "The print window will open shortly.",
+        className: "bg-white text-gray-900 border border-white",
       })
     } catch (error) {
       console.error("Error during printing:", error)
       toast({
         variant: "destructive",
-        title: "Errore di stampa", // Localized
-        description: "Si è verificato un errore durante la preparazione della stampa.", // Localized
+        title: "Print error",
+        description: "An error occurred while preparing the print.",
       })
     }
   }
@@ -355,9 +355,9 @@ export default function TicketPage() {
       await deleteTicket(currentTicket.id)
       toast({
         variant: "success",
-        title: "Biglietto eliminato", // Localized
-        description: "Il biglietto è stato eliminato con successo.", // Localized
-        className: "bg-white text-gray-900 border border-white"
+        title: "Ticket deleted",
+        description: "The ticket has been successfully deleted.",
+        className: "bg-white text-gray-900 border border-white",
       })
       setIsDeleteDialogOpen(false)
       navigate("/profile")
@@ -365,8 +365,8 @@ export default function TicketPage() {
       console.error("Error while deleting the ticket:", err)
       toast({
         variant: "destructive",
-        title: "Errore", // Localized
-        description: "Si è verificato un errore durante l'eliminazione del biglietto.", // Localized
+        title: "Error",
+        description: "An error occurred while deleting the ticket.",
       })
     } finally {
       setIsDeleting(false)
@@ -410,12 +410,12 @@ export default function TicketPage() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="bg-gray-50 border border-gray-200 px-6 py-5 rounded-3xl max-w-md mx-auto text-center">
           <Info className="h-10 w-10 mx-auto mb-3 text-gray-400" />
-          <h3 className="text-lg mb-2">Biglietto non trovato</h3> {/* Localized */}
-          <p className="text-gray-500 mb-4">Il biglietto richiesto non è disponibile o è stato rimosso.</p> {/* Localized */}
+          <h3 className="text-lg mb-2">Ticket not found</h3> 
+          <p className="text-gray-500 mb-4">The requested ticket is not available or has been removed.</p> {/* Localized */}
           <Link to="/profile">
             <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Torna al profilo {/* Localized */}
+              Go back to profile
             </Button>
           </Link>
         </div>
@@ -469,7 +469,7 @@ export default function TicketPage() {
                 className="text-white hover:bg-white/10 rounded-2xl border border-white/20 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Profilo {/* Localized */}
+                Profile
               </Button>
             </Link>
           </div>
@@ -483,7 +483,7 @@ export default function TicketPage() {
                 isFixed ? "lg:text-2xl md:text-xl text-lg" : "lg:text-5xl md:text-4xl text-3xl"
               }`}
             >
-              {currentTicket.ticketType?.name || `Biglietto #${currentTicket.id}`} {/* Localized */}
+              {currentTicket.ticketType?.name || `Ticket #${currentTicket.id}`} 
             </h1>
             {!isFixed && (
               <div className="flex items-center gap-4 mt-4">
@@ -497,7 +497,7 @@ export default function TicketPage() {
             )}
             {!isFixed && (
               <p className="text-gray-100 text-lg mt-2 px-4 text-center">
-                {currentTicket.ticketType?.description || "Biglietto d'ingresso al parco"} {/* Localized */}
+                {currentTicket.ticketType?.description || "Park entrance ticket"} 
               </p>
             )}
           </div>
@@ -512,7 +512,7 @@ export default function TicketPage() {
           {/* QR Code Section */}
           <div className="bg-white rounded-3xl p-8">
             <div className="text-center">
-              <h3 className="text-2xl font-light text-gray-900 mb-6">Codice QR</h3> {/* Localized */}
+              <h3 className="text-2xl font-light text-gray-900 mb-6">QR code</h3> 
               <div className="bg-gradient-to-br from-teal-50 to-emerald-50 p-6 rounded-2xl border-2 border-teal-100 mb-6 inline-block">
                 {currentTicket.qrCode ? (
                   <img
@@ -529,12 +529,12 @@ export default function TicketPage() {
                   >
                     <QrCode className="h-16 w-16 text-gray-300 mb-2" />
                     <p className="text-sm text-gray-500 text-center font-mono px-4">
-                      {currentTicket.rawCode || "QR Code non disponibile"} {/* Localized */}
+                      {currentTicket.rawCode || "QR Code not available"} 
                     </p>
                   </div>
                 )}
               </div>
-              <p className="text-gray-600 mb-6">Mostra questo QR code all'ingresso per accedere al parco</p>
+              <p className="text-gray-600 mb-6">Show this QR code at the entrance to access the park.</p>
               <div className="flex gap-3 justify-center">
                 <Button
                   onClick={handleDownloadQR}
@@ -543,7 +543,7 @@ export default function TicketPage() {
                   className="rounded-2xl bg-teal-100 border-teal-200 text-teal-700 hover:bg-teal-50 transition-all duration-300 hover:text-teal-700"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Scarica {/* Localized */}
+                  Download 
                 </Button>
                 <Button
                   onClick={handleShareTicket}
@@ -552,7 +552,7 @@ export default function TicketPage() {
                   className="rounded-2xl bg-cyan-100 border-cyan-200 text-cyan-700 hover:bg-cyan-50 transition-all duration-300 hover:text-cyan-700"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  Condividi {/* Localized */}
+                  Share
                 </Button>
               </div>
             </div>
@@ -560,7 +560,7 @@ export default function TicketPage() {
 
           {/* Ticket Information */}
           <div className="bg-white rounded-3xl p-8">
-            <h3 className="text-2xl font-light text-gray-900 mb-6">Dettagli biglietto</h3> {/* Localized */}
+            <h3 className="text-2xl font-light text-gray-900 mb-6">Ticket details</h3> 
 
             <div className="space-y-6">
               <div className="flex justify-between items-center pb-4 border-b border-gray-100">
@@ -578,7 +578,7 @@ export default function TicketPage() {
                     <Calendar className="h-5 w-5 text-teal-700" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Data di validità</p> {/* Localized */}
+                    <p className="text-sm text-gray-500 mb-1">Valid date</p> 
                     <p className=" text-gray-900">
                       {format(validityDate, "EEEE d MMMM", { locale: it })}
                     </p>
@@ -590,7 +590,7 @@ export default function TicketPage() {
                     <Clock className="h-5 w-5 text-teal-700" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Data di acquisto</p> {/* Localized */}
+                    <p className="text-sm text-gray-500 mb-1">Purchase date</p> 
                     <p className=" text-gray-900">
                       {format(purchaseDate, "d MMMM, HH:mm", { locale: it })}
                     </p>
@@ -602,7 +602,7 @@ export default function TicketPage() {
                     <CreditCard className="h-5 w-5 text-teal-700" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Metodo di pagamento</p> {/* Localized */}
+                    <p className="text-sm text-gray-500 mb-1">Payment method</p> 
                     <p className=" text-gray-900">
                       {getPaymentMethodText(currentTicket.paymentMethod)}
                       {cardNumber && <span className="ml-2 text-gray-500">({cardNumber})</span>}
@@ -615,7 +615,7 @@ export default function TicketPage() {
                     <Tag className="h-5 w-5 text-teal-700" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Prezzo</p> {/* Localized */}
+                    <p className="text-sm text-gray-500 mb-1">Price:</p> 
                     <p className=" text-teal-600 text-xl">€{ticketPrice.toFixed(2)}</p>
                   </div>
                 </div>
@@ -626,7 +626,7 @@ export default function TicketPage() {
                       <User className="h-5 w-5 text-teal-700" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Proprietario</p> {/* Localized */}
+                      <p className="text-sm text-gray-500 mb-1">Owner</p> 
                       <p className=" text-gray-900">ID: {currentTicket.userId}</p>
                     </div>
                   </div>
@@ -635,7 +635,7 @@ export default function TicketPage() {
 
               {currentTicket.ticketType?.features && currentTicket.ticketType.features.length > 0 && (
                 <div className="pt-6 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Include:</h4> {/* Localized */}
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Includes:</h4> 
                   <ul className="space-y-2">
                     {currentTicket.ticketType.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">
@@ -653,7 +653,7 @@ export default function TicketPage() {
         {/* Additional Information */}
         {currentTicket.notes && (
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 mt-8 max-w-6xl mx-auto transition-all hover:border-teal-200">
-            <h3 className="text-2xl font-light text-gray-900 mb-4">Note</h3> {/* Localized */}
+            <h3 className="text-2xl font-light text-gray-900 mb-4">Notes</h3> 
             <p className="text-gray-600 leading-relaxed">{currentTicket.notes}</p>
           </div>
         )}
@@ -667,12 +667,12 @@ export default function TicketPage() {
               className="rounded-full px-12 py-6 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
             >
               <Trash className="h-4 w-4 mr-2" />
-              Cancella Prenotazione {/* Localized */}
+              Cancel reservation
             </Button>
           )}
           <Button onClick={handlePrintTicket} className="bg-teal-700 hover:bg-teal-600 text-white rounded-full px-12 py-6">
             <Printer className="h-4 w-4 mr-2" />
-            Stampa {/* Localized */}
+            Print
           </Button>
         </div>
       </div>
