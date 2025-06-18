@@ -322,7 +322,7 @@ export default function ServiceDetailsDrawer({
                       <div>
                         <div className="font-normal text-gray-900">{ticket.ticketType?.name || "Ticket"}</div>
                         <div className="text-xs text-gray-500">
-                          Valid for: {new Date(ticket.validFor).toLocaleDateString("it-IT")}
+                          Valid for: {new Date(toDateOnly(ticket.validFor)).toLocaleDateString("it-IT")}
                         </div>
                       </div>
                     </div>

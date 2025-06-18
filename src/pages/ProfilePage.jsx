@@ -453,30 +453,24 @@ export default function ProfilePage() {
                     <div className="space-y-4 min-h-52">
                       {[...activeTickets]
                         .sort((a, b) => {
-                          // Sort by status first: USED tickets go last
+
                           if (a.status === "USED" && b.status !== "USED") return 1
                           if (a.status !== "USED" && b.status === "USED") return -1
-                          // Then sort by validFor date (ascending, so soonest active tickets are first)
-                          // Utilizza parseISO anche qui per l'ordinamento
+
                           return parseISO(a.validFor).getTime() - parseISO(b.validFor).getTime();
                         })
                         .slice(0, 2)
                         .map((ticket) => {
-                          // *** DEBUG E VISUALIZZAZIONE DELLA DATA: INIZIO ***
-                          console.log("------------------------------------------");
-                          console.log("DEBUG Ticket ID:", ticket.id);
-                          console.log("DEBUG Stringa validFor ricevuta:", ticket.validFor);
 
                           let displayDate = "Data non disponibile";
                           try {
-                            const utcDate = parseISO(ticket.validFor); // L'oggetto Date è ora UTC
+                            const utcDate = parseISO(ticket.validFor); 
 
                             if (isNaN(utcDate.getTime())) {
                               console.error("DEBUG Errore: parseISO ha prodotto una data non valida per:", ticket.validFor);
                               displayDate = "Data non valida";
                             } else {
-                              // Questa è la parte cruciale: estrae le componenti della data in UTC
-                              // per evitare lo shift del fuso orario locale.
+
                               const year = utcDate.getUTCFullYear();
                               const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0'); // Mese è 0-indexed
                               const day = utcDate.getUTCDate().toString().padStart(2, '0');
@@ -487,8 +481,6 @@ export default function ProfilePage() {
                             console.error("DEBUG Errore durante il parsing o formattazione della data per ticket ID:", ticket.id, e);
                             displayDate = "Errore di parsing";
                           }
-                          console.log("------------------------------------------");
-                          // *** DEBUG DELLA DATA: FINE ***
 
                           return (
                             <Link key={ticket.id} to={`/profile/${ticket.id}`}>
@@ -502,7 +494,7 @@ export default function ProfilePage() {
                                   </div>
                                   <div className="text-sm text-gray-500 flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
-                                    Valid until {displayDate} {/* Utilizza la variabile di debug qui */}
+                                    Valid until {displayDate} 
                                   </div>
                                 </div>
                                 <Badge
