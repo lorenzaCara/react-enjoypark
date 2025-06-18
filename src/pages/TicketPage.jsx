@@ -423,15 +423,10 @@ export default function TicketPage() {
     )
   }
 
-  // --- MODIFICA QUI ---
-  // Use parseISO for more robust parsing of ISO 8601 strings, which are common from databases.
-  // Then, normalize to the start of the day in the local timezone.
-  const rawValidityDate = parseISO(currentTicket.validFor);
-  const validityDate = startOfDay(rawValidityDate);
+  const validityDate = parseISO(currentTicket.validFor);
 
   console.log("currentTicket.validFor (original):", currentTicket.validFor);
-  console.log("rawValidityDate (parseISO object):", rawValidityDate);
-  console.log("validityDate (after startOfDay):", validityDate); // Check this value in console
+  console.log("validityDate (parsed without startOfDay):", validityDate); 
 
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
