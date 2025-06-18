@@ -580,7 +580,7 @@ export default function TicketPage() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Valid date</p> 
                     <p className=" text-gray-900">
-                      {format(validityDate, "EEEE d MMMM", { locale: it })}
+                      {format(validityDate, "EEEE d MMMM", { locale: enUS })}
                     </p>
                   </div>
                 </div>
@@ -592,7 +592,7 @@ export default function TicketPage() {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Purchase date</p> 
                     <p className=" text-gray-900">
-                      {format(purchaseDate, "d MMMM, HH:mm", { locale: it })}
+                      {format(purchaseDate, "d MMMM, HH:mm", { locale: enUS })}
                     </p>
                   </div>
                 </div>
