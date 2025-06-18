@@ -508,7 +508,7 @@ export default function HeptapodMapSVG() {
 
         {/* Header for detail view */}
         {currentView === "detail" && (
-          <div className="absolute top-4 left-4 right-4 z-50 flex justify-between items-center">
+          <div className="absolute top-4 left-4 right-4 z-40 flex justify-between items-center">
             <Button
               onClick={switchToMainView}
               disabled={isTransitioning}
@@ -706,7 +706,7 @@ export default function HeptapodMapSVG() {
       {/* Overlay per il drawer */}
       <div
         ref={overlayRef}
-        className="fixed inset-0 bg-black bg-opacity-60 z-40"
+        className="fixed inset-0 bg-black bg-opacity-60 z-50"
         style={{ display: "none" }}
         onClick={closeDrawer}
       />
