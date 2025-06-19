@@ -487,7 +487,7 @@ export default function TicketsManager() {
                       )}
 
                       <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 mt-4">
-                        {ticket.status !== "EXPIRED" && (
+                        {ticket.status !== "EXPIRED" && ticket.status !== "USED" && (
                           <Button
                             size="sm"
                             variant="outline"
