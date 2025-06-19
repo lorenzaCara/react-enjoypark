@@ -199,7 +199,12 @@ export default function ShowsPlannerDrawer({
                   <span>Date</span>
                 </div>
                 <span className=" text-teal-700">
-                  {new Date(selectedShow.date).toLocaleDateString("en-US")}
+                  Valid for: {createDateForDisplay(selectedShow.date)?.toLocaleDateString("en-GB", {
+                               weekday: 'long',
+                               year: 'numeric',
+                               month: 'long',
+                               day: 'numeric',
+                             })}
                 </span>
               </div>
             )}
