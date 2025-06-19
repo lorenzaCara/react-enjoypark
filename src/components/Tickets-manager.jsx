@@ -299,7 +299,7 @@ export default function TicketsManager() {
             </div>
             <h1
               className={`transition-all duration-700 font-light tracking-wider ${
-                isFixed ? "lg:text-2xl md:text-xl text-lg" : "lg:text-5xl md:text-4xl text-3xl"
+                isFixed ? "lg:text-2xl md:text-xl text-lg px-4" : "lg:text-5xl md:text-4xl text-3xl"
               }`}
             >
               Your tickets
@@ -401,7 +401,7 @@ export default function TicketsManager() {
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Ticket className="w-10 h-10 text-gray-400" />
             </div>
-            <h4 className="text-xl font-medium text-gray-900 mb-3">
+            <h4 className="text-xl font-light text-gray-900 mb-3">
               {activeFilter === "all" ? "No tickets available" : `No ${activeFilter.toLowerCase()} tickets`}
             </h4>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">

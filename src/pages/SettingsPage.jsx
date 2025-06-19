@@ -538,7 +538,6 @@ export default function SettingsPage() {
               </div>
               <Switch
                 checked={theme === "dark"}
-                onCheckedChange={handleThemeChange}
               />
             </div>
 
