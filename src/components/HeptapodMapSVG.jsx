@@ -315,70 +315,40 @@ export default function HeptapodMapSVG() {
   }
 
   // Point click handler
-  // >>>>>>>>>>>>> CRITICAL FIX: handlePointClick now accepts pointId and typeHint <<<<<<<<<<<<<
-  const handlePointClick = (pointId, typeHint = null) => {
-    if (isDragging || isTransitioning) return;
+  const handlePointClick = (point) => {
+    if (isDragging || isTransitioning) return
 
-    console.log("Clicked pointId:", pointId); // e.g., "service-xyz", "attraction-abc", "special-kids-area"
-    console.log("Type Hint (from MappaSVG):", typeHint); // e.g., "service", "attraction", "special"
+    let selectedItem = null
 
-    let selectedItem = null;
-
-    // 1. Check for special points first, using the typeHint or prefix 'special-'
-    // Note: The 'kids-area' point will only trigger switchToDetailView in MappaSVG,
-    // so it won't typically reach here unless its logic changes.
-    // However, other special points like 'stage' or 'entrance' will.
-    if (typeHint === 'entrance' || typeHint === 'stage' || typeHint === 'kids' || pointId.startsWith('special-')) {
-        const originalSpecialId = pointId.startsWith('special-') ? pointId.replace('special-', '') : pointId;
-        const specialPoint = specialPoints.find((sp) => sp.id === originalSpecialId);
-        if (specialPoint) {
-            console.log("Found as Special Point:", specialPoint);
-            if (specialPoint.type === "stage") {
-                const stageShows = getShowsForLocation(specialPoint.location);
-                selectedItem = {
-                    ...specialPoint,
-                    shows: stageShows,
-                    type: "stage",
-                };
-            } else {
-                selectedItem = specialPoint;
-            }
+    // Se è un punto speciale (stage), cerca gli show per quella location
+    if (typeof point === "string") {
+      const specialPoint = specialPoints.find((sp) => sp.id === point)
+      if (specialPoint && specialPoint.type === "stage") {
+        const stageShows = getShowsForLocation(specialPoint.location)
+        selectedItem = {
+          ...specialPoint,
+          shows: stageShows,
+          type: "stage",
         }
-    }
+      } else {
+        selectedItem = specialPoint
+      }
+    } else {
+      // Trova l'attrazione o il servizio corrispondente
+      const attraction = attractions?.find(a => a.id === point)
+      const service = services?.find(s => s.id === point)
 
-    // 2. If not a special point, try to find it as a service
-    // Prioritize if typeHint is 'service' OR if ID starts with 'service-'
-    if (!selectedItem && (typeHint === 'service' || pointId.startsWith('service-'))) {
-        const originalServiceId = pointId.replace('service-', '');
-        const service = services?.find((s) => s.id === originalServiceId);
-        if (service) {
-            console.log("Found as Service:", service);
-            selectedItem = { ...service, type: "service" };
-        }
+      if (service) {
+        selectedItem = service
+      } else if (attraction) {
+        selectedItem = attraction
+      }
     }
-
-    // 3. If still not found, try as an attraction
-    // Prioritize if typeHint is 'attraction' OR if ID starts with 'attraction-'
-    if (!selectedItem && (typeHint === 'attraction' || pointId.startsWith('attraction-'))) {
-        const originalAttractionId = pointId.replace('attraction-', '');
-        const attraction = attractions?.find((a) => a.id === originalAttractionId);
-        if (attraction) {
-            console.log("Found as Attraction:", attraction);
-            selectedItem = attraction;
-        }
-    }
-
-    if (!selectedItem) {
-        console.warn("Could not find any item for ID:", pointId, "with type hint:", typeHint);
-    }
-
-    console.log("Selected Item after logic:", selectedItem);
 
     if (selectedItem) {
       setSelectedPoint(selectedItem)
       setShowDrawer(true)
-      // Highlight using the prefixed ID that MappaSVG recognizes
-      setHighlightedItem(pointId) 
+      setHighlightedItem(selectedItem.id)
 
       // Rimuovi l'evidenziazione dopo 3 secondi
       setTimeout(() => {
