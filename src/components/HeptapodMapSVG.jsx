@@ -315,29 +315,36 @@ export default function HeptapodMapSVG() {
   }
 
   // Point click handler
-  const handlePointClick = (point) => {
+  const handlePointClick = (pointId) => { // Renamed 'point' to 'pointId' for clarity
     if (isDragging || isTransitioning) return
 
-    let selectedItem = null
+    let selectedItem = null;
 
-    // Se è un punto speciale (stage), cerca gli show per quella location
-    if (typeof point === "string") {
-      const specialPoint = specialPoints.find((sp) => sp.id === point)
-      if (specialPoint && specialPoint.type === "stage") {
-        const stageShows = getShowsForLocation(specialPoint.location)
-        selectedItem = {
-          ...specialPoint,
-          shows: stageShows,
-          type: "stage",
+    // First, check if it's a special point (stage or entrance)
+    const specialPoint = specialPoints.find((sp) => sp.id === pointId);
+    if (specialPoint) {
+        if (specialPoint.type === "stage") {
+            const stageShows = getShowsForLocation(specialPoint.location);
+            selectedItem = {
+                ...specialPoint,
+                shows: stageShows,
+                type: "stage",
+            };
+        } else {
+            selectedItem = specialPoint;
         }
-      } else {
-        selectedItem = specialPoint
-      }
     } else {
-      // Trova l'attrazione o il servizio corrispondente
-      const attraction = attractions?.find((a) => a.id === point)
-      const service = services?.find((s) => s.id === point)
-      selectedItem = attraction || service
+        // If not a special point, check if it's an attraction
+        const attraction = attractions?.find((a) => a.id === pointId);
+        if (attraction) {
+            selectedItem = attraction;
+        } else {
+            // If not an attraction, check if it's a service
+            const service = services?.find((s) => s.id === pointId);
+            if (service) {
+                selectedItem = service;
+            }
+        }
     }
 
     if (selectedItem) {
@@ -567,7 +574,7 @@ export default function HeptapodMapSVG() {
             <div className="text-teal-600 text-xs font-medium mt-1">Zoom: {Math.round(scale * 100)}%</div>
             <div className="text-gray-500 text-xs">Attractions: {attractions ? attractions.length : 0}</div>
             {currentView === "main" && (
-              <div className="text-teal-600 text-xs mt-1">Click on the red points to see the kids area</div>
+              <div className="text-teal-600 text-xs mt-1">Click on the white point to see the kids area</div>
             )}
           </div>
         )}
