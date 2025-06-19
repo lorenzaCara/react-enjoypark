@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
 import { AlertCircle, MapPin, Clock, Plus, Ticket } from "lucide-react"
-import { usePlanners } from "../contexts/PlannerContext" // <-- Assicurati che il percorso sia corretto
+import { usePlanners } from "@/contexts/PlannerProvider"
 
 export default function AttractionPlannerDrawer({
   selectedAttraction,
