@@ -35,7 +35,22 @@ export default function ServiceDetailsDrawer({
   const [isCreatingBooking, setIsCreatingBooking] = useState(false)
 
   // Function to safely extract only the date in YYYY-MM-DD format
-  const toDateOnly = (dateStr) => new Date(dateStr).toISOString().split("T")[0]
+  const toDateOnly = (dateStr) => {
+        if (!dateStr) return null;
+        // Estrae solo la parte della data "YYYY-MM-DD"
+         return dateStr.split("T")[0];
+      }
+    
+      // Funzione per creare un oggetto Date che rappresenti solo il giorno desiderato,
+      // senza influenzare il fuso orario o l'ora del giorno.
+      const createDateForDisplay = (dateStr) => {
+        if (!dateStr) return null;
+        const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+        const [year, month, day] = datePart.split('-').map(Number);
+        // Crea una data locale al 00:00:00 del giorno specificato.
+        // Month è 0-indexed in JS Date, quindi month - 1.
+        return new Date(year, month - 1, day);
+      };
 
   useEffect(() => {
     if (selectedTicket && selectedTicket.validFor) {
@@ -318,7 +333,12 @@ const addServiceToPlanner = async (service) => {
                       <div>
                         <div className="font-normal text-gray-900">{ticket.ticketType?.name || "Ticket"}</div>
                         <div className="text-xs text-gray-500">
-                          Valid for: {new Date(toDateOnly(ticket.validFor)).toLocaleDateString("it-IT")}
+                          Valid for: {createDateForDisplay(ticket.validFor)?.toLocaleDateString("en-GB", {
+                               weekday: 'long',
+                               year: 'numeric',
+                               month: 'long',
+                               day: 'numeric',
+                             })}
                         </div>
                       </div>
                     </div>

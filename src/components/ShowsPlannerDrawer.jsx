@@ -31,10 +31,9 @@ export default function ShowsPlannerDrawer({
 
     const createDateForDisplay = (dateStr) => {
         if (!dateStr) return null;
-        const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+        const datePart = dateStr.split('T')[0]; 
         const [year, month, day] = datePart.split('-').map(Number);
-        // Crea una data locale al 00:00:00 del giorno specificato.
-        // Month è 0-indexed in JS Date, quindi month - 1.
+
         return new Date(year, month - 1, day);
       };
 
