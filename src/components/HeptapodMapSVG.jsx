@@ -315,14 +315,18 @@ export default function HeptapodMapSVG() {
   }
 
   // Point click handler
-  const handlePointClick = (pointId) => { // Renamed 'point' to 'pointId' for clarity
-    if (isDragging || isTransitioning) return
+  const handlePointClick = (pointId, typeHint = null) => { // Aggiunto typeHint
+    if (isDragging || isTransitioning) return;
+
+    console.log("Clicked pointId:", pointId); // Aggiungi questo
+    console.log("Type Hint (if provided):", typeHint); // Aggiungi questo
 
     let selectedItem = null;
 
     // First, check if it's a special point (stage or entrance)
     const specialPoint = specialPoints.find((sp) => sp.id === pointId);
     if (specialPoint) {
+        console.log("Found as Special Point:", specialPoint); // Aggiungi questo
         if (specialPoint.type === "stage") {
             const stageShows = getShowsForLocation(specialPoint.location);
             selectedItem = {
@@ -333,31 +337,36 @@ export default function HeptapodMapSVG() {
         } else {
             selectedItem = specialPoint;
         }
-    } else {
-        // If not a special point, check if it's an attraction
-        const attraction = attractions?.find((a) => a.id === pointId);
-        if (attraction) {
-            selectedItem = attraction;
-        } else {
-            // If not an attraction, check if it's a service
-            const service = services?.find((s) => s.id === pointId);
-            if (service) {
-                selectedItem = service;
-            }
+    } else if (typeHint === 'service' || !typeHint) { // Prova prima come servizio se suggerito o se non c'è suggerimento
+        const service = services?.find((s) => s.id === pointId);
+        if (service) {
+            console.log("Found as Service:", service); // Aggiungi questo
+            selectedItem = { ...service, type: "service" }; // Aggiungi type per il drawer
         }
     }
 
-    if (selectedItem) {
-      setSelectedPoint(selectedItem)
-      setShowDrawer(true)
-      setHighlightedItem(selectedItem.id)
-
-      // Rimuovi l'evidenziazione dopo 3 secondi
-      setTimeout(() => {
-        setHighlightedItem(null)
-      }, 3000)
+    // Se non è un servizio o un punto speciale, prova come attrazione
+    if (!selectedItem) {
+        const attraction = attractions?.find((a) => a.id === pointId);
+        if (attraction) {
+            console.log("Found as Attraction:", attraction); // Aggiungi questo
+            selectedItem = attraction;
+        }
     }
-  }
+
+
+    console.log("Selected Item after logic:", selectedItem); // Aggiungi questo
+
+    if (selectedItem) {
+        setSelectedPoint(selectedItem);
+        setShowDrawer(true);
+        setHighlightedItem(selectedItem.id);
+
+        setTimeout(() => {
+            setHighlightedItem(null);
+        }, 3000);
+    }
+};
 
   // View switching con animazioni
   const switchToDetailView = () => {
