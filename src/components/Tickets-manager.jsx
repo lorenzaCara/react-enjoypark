@@ -397,7 +397,7 @@ export default function TicketsManager() {
 
         {/* Tickets List */}
         {sortedTickets.length === 0 ? (
-          <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 text-center shadow-lg lg:mx-4 md:mx-0 mx-4">
+          <div className="bg-white rounded-3xl p-8 text-center lg:mx-4 md:mx-0 mx-4 shadow:none">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Ticket className="w-10 h-10 text-gray-400" />
             </div>
