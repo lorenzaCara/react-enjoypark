@@ -364,7 +364,7 @@ export default function PlannerManager() {
 
         {/* Enhanced Ticket Selection */}
         <div className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden mb-8 mx-4 lg:mx-8">
-          <div className="p-8 border-b border-gray-100">
+          <div className="lg:p-8 p-4 border-b border-gray-100">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
                 <Ticket className="w-6 h-6 text-teal-700" />
@@ -415,7 +415,7 @@ export default function PlannerManager() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
-                    <ListTodo className="w-6 h-6 text-teal-700" />
+                    <ListTodo className="w-6 h-6 text-teal-700"  size='icon'/>
                   </div>
                   <div>
                     <h3 className="text-2xl font-light text-gray-900">Your planners</h3>
