@@ -454,6 +454,7 @@ export default function AttractionsPage() {
         createPlanner={createPlanner}
         updatePlanner={updatePlanner}
         toast={toast}
+        addAttractionToPlanner={ planners.addAttractionToPlanner}
       />
     </div>
   )
