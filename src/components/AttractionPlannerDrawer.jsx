@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
 import { AlertCircle, MapPin, Clock, Plus, Ticket } from "lucide-react"
+import { usePlanners } from "@/contexts/PlannerProvider"
 
 export default function AttractionPlannerDrawer({
   selectedAttraction,
@@ -13,6 +14,7 @@ export default function AttractionPlannerDrawer({
   createPlanner,
   updatePlanner,
   toast,
+  addAttractionToPlanner
 }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [plannerOption, setPlannerOption] = useState("new")
@@ -55,10 +57,7 @@ export default function AttractionPlannerDrawer({
 
   // Funzione per aggiungere l'attrazione al planner
   const addAttractionToPlanner = async (attraction) => {
-    console.log("Attempting to add attraction to planner:", attraction)
-
     if (!selectedTicket) {
-      console.warn("No ticket selected.")
       toast({
         title: "Error",
         description: "Please select a valid ticket",
@@ -68,12 +67,10 @@ export default function AttractionPlannerDrawer({
     }
 
     const formattedDate = toDateOnly(selectedTicket.validFor)
-    console.log("Formatted date of selected ticket:", formattedDate)
-
     setIsCreatingPlanner(true)
+
     try {
       if (plannerOption === "new") {
-        console.log("Creating a new planner.")
         const plannerData = {
           ticketId: selectedTicket.id,
           userId: selectedTicket.userId,
@@ -84,18 +81,16 @@ export default function AttractionPlannerDrawer({
           showIds: [],
           serviceIds: [],
         }
-        console.log("New planner data:", plannerData)
 
         await createPlanner(plannerData)
+
         toast({
           title: "Planner created!",
           description: `"${attraction.name}" has been added to a new planner for ${new Date(formattedDate).toLocaleDateString("en-GB")}!`,
         })
       } else {
-        console.log("Adding attraction to an existing planner.")
         const existingPlanner = planners.find((p) => p.id === Number(selectedExistingPlanner))
         if (!existingPlanner) {
-          console.error("Selected planner not found. ID:", selectedExistingPlanner)
           toast({
             title: "Error",
             description: "Selected planner not found",
@@ -104,10 +99,8 @@ export default function AttractionPlannerDrawer({
           return
         }
 
-        console.log("Existing planner found:", existingPlanner)
-
-        if (existingPlanner.attractionIds?.includes(attraction.id)) {
-          console.warn("The attraction is already in the selected planner.")
+        const alreadyInPlanner = existingPlanner.attractions?.some((a) => a.id === attraction.id)
+        if (alreadyInPlanner) {
           toast({
             title: "Warning",
             description: "This attraction is already in the selected planner",
@@ -116,17 +109,8 @@ export default function AttractionPlannerDrawer({
           return
         }
 
-        const updatedAttractionIds = [...(existingPlanner.attractionIds || []), attraction.id]
-        console.log("Updated list of attractionIds:", updatedAttractionIds)
-
-        const updatedPlannerData = {
-          ...existingPlanner,
-          attractionIds: updatedAttractionIds,
-        }
-
-        console.log("Full updated planner data:", updatedPlannerData)
-
-        await updatePlanner(existingPlanner.id, updatedPlannerData)
+        // 🔥 Usa la funzione fornita dal PlannerProvider
+        await addAttractionToPlanner(existingPlanner.id, attraction.id)
 
         toast({
           title: "Attraction added!",

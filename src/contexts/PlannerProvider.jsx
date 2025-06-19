@@ -47,15 +47,15 @@ export function PlannerProvider({ children }) {
     }
   }
 
-  // Aggiorna un planner esistente
+  // Aggiorna un planner (sostituisce tutti gli elementi)
   const updatePlanner = async (id, plannerData) => {
     setUpdating(true)
     setUpdateError(null)
     try {
       const { data } = await myaxios.put(`/planners/${id}`, plannerData)
 
-      // Aggiorna lo stato locale dei planner
-      setPlanners((prev) => prev.map((planner) => (planner.id === id ? { ...planner, ...data } : planner)))
+      // Aggiorna completamente il planner nello stato
+      setPlanners((prev) => prev.map((planner) => (planner.id === id ? data : planner)))
 
       return data
     } catch (err) {
@@ -78,6 +78,45 @@ export function PlannerProvider({ children }) {
     }
   }
 
+  // Aggiunge una singola attrazione
+  const addAttractionToPlanner = async (plannerId, attractionId) => {
+    try {
+      const { data } = await myaxios.patch(`/planners/${plannerId}/add-attraction`, { attractionId })
+      setPlanners((prev) =>
+        prev.map((p) => (p.id === plannerId ? { ...p, attractions: data.attractions } : p))
+      )
+    } catch (err) {
+      console.error("Errore nell'aggiunta dell'attrazione:", err)
+      throw err
+    }
+  }
+
+  // Aggiunge uno show
+  const addShowToPlanner = async (plannerId, showId) => {
+    try {
+      const { data } = await myaxios.patch(`/planners/${plannerId}/add-show`, { showId })
+      setPlanners((prev) =>
+        prev.map((p) => (p.id === plannerId ? { ...p, shows: data.shows } : p))
+      )
+    } catch (err) {
+      console.error("Errore nell'aggiunta dello show:", err)
+      throw err
+    }
+  }
+
+  // Aggiunge un servizio
+  const addServiceToPlanner = async (plannerId, serviceId) => {
+    try {
+      const { data } = await myaxios.patch(`/planners/${plannerId}/add-service`, { serviceId })
+      setPlanners((prev) =>
+        prev.map((p) => (p.id === plannerId ? { ...p, services: data.services } : p))
+      )
+    } catch (err) {
+      console.error("Errore nell'aggiunta del servizio:", err)
+      throw err
+    }
+  }
+
   useEffect(() => {
     fetchPlanners()
   }, [])
@@ -96,6 +135,9 @@ export function PlannerProvider({ children }) {
         updating,
         updateError,
         deletePlanner,
+        addAttractionToPlanner,
+        addShowToPlanner,
+        addServiceToPlanner,
       }}
     >
       {children}
@@ -106,4 +148,3 @@ export function PlannerProvider({ children }) {
 export function usePlanners() {
   return useContext(PlannerContext)
 }
-
