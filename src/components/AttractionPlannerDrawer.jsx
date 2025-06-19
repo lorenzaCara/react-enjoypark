@@ -12,9 +12,7 @@ export default function AttractionPlannerDrawer({
   purchasedTickets,
   planners,
   createPlanner,
-  updatePlanner,
   toast,
-  addAttractionToPlanner
 }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [plannerOption, setPlannerOption] = useState("new")
@@ -22,6 +20,7 @@ export default function AttractionPlannerDrawer({
   const [plannerTitle, setPlannerTitle] = useState("")
   const [plannerDescription, setPlannerDescription] = useState("")
   const [isCreatingPlanner, setIsCreatingPlanner] = useState(false)
+  const { addAttractionToPlanner: addSingleAttractionToPlanner } = usePlanners()
 
   // Funzione per estrarre solo la data in formato YYYY-MM-DD in modo sicuro
   const toDateOnly = (dateStr) => {
@@ -110,7 +109,7 @@ export default function AttractionPlannerDrawer({
         }
 
         // 🔥 Usa la funzione fornita dal PlannerProvider
-        await addAttractionToPlanner(existingPlanner.id, attraction.id)
+        await addSingleAttractionToPlanner(existingPlanner.id, attraction.id)
 
         toast({
           title: "Attraction added!",
