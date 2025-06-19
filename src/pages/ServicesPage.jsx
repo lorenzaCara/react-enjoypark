@@ -174,18 +174,18 @@ const ServicesPage = () => {
                   {hasValidTicket && (
                     <Badge className="bg-teal-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100">
                       <Ticket className="w-3 h-3 mr-1" />
-                      Accessibile
+                      Accessible
                     </Badge>
                   )}
                 </div>
 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description || "Servizio del parco"}</p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description || "Park service"}</p>
 
                 <div className="space-y-2">
                   {service.operatingHours && (
                     <div className="flex items-center text-gray-500 text-sm">
                       <Clock className="w-4 h-4 mr-2" />
-                      <span>Orario: {service.operatingHours}</span>
+                      <span>Hour: {service.operatingHours}</span>
                     </div>
                   )}
                   <div className="flex items-center text-gray-500 text-sm">
