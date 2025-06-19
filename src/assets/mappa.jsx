@@ -64,21 +64,24 @@ const MappaSVG = ({ attractions = [], services = [], onPointClick, selectedPoint
 
   // Combina attrazioni dal provider con servizi e punti speciali
   const allPoints = [
-    // Attrazioni per adulti
     ...adultAttractions.map((attraction) => ({
       ...attraction,
-      id: attraction.id || attraction.name?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(),
+      // Prefix attraction IDs
+      id: `attraction-${attraction.id || attraction.name?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString()}`,
       type: "attraction",
     })),
-    // Servizi
     ...services.map((service) => ({
       ...service,
-      id: service.id || service.name?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(),
+      // Prefix service IDs
+      id: `service-${service.id || service.name?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString()}`,
       type: "service",
     })),
-    // Punti speciali
-    ...specialPoints,
-  ]
+    // Also prefix special points to be consistent
+    ...specialPoints.map(point => ({
+      ...point,
+      id: `special-${point.id}`
+    })),
+  ];
 
   return (
     <svg id="Livello_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 349.09 368.15" {...props}>
@@ -922,12 +925,13 @@ const MappaSVG = ({ attractions = [], services = [], onPointClick, selectedPoint
           stroke="white"
           strokeWidth="1"
           onClick={() => {
-              if (point.id === "kids-area") {
-                if (switchToDetailView) switchToDetailView()
+              if (point.id === "special-kids-area") { // Use prefixed ID
+                  if (switchToDetailView) switchToDetailView();
               } else {
-                if (onPointClick) onPointClick(point.id)
+                  // THIS IS CRUCIAL: Pass the prefixed ID AND the point.type
+                  if (onPointClick) onPointClick(point.id, point.type);
               }
-            }}
+          }}
           className={`point-marker ${point.type} ${isSelected ? "selected" : ""} ${isHighlighted ? "highlighted" : ""}`}
           style={{ cursor: "pointer" }}
           title={point.name}

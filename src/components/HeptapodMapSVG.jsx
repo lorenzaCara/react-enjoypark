@@ -315,52 +315,59 @@ export default function HeptapodMapSVG() {
   }
 
   // Point click handler
-  const handlePointClick = (pointId, typeHint = null) => { // Aggiunto typeHint
+  const handlePointClick = (pointId, typeHint = null) => {
     if (isDragging || isTransitioning) return;
 
-    console.log("Clicked pointId:", pointId); // Aggiungi questo
-    console.log("Type Hint (if provided):", typeHint); // Aggiungi questo
+    console.log("Clicked pointId:", pointId); // THIS IS THE LOG TO CHECK AFTER CLICKING A SERVICE
+    console.log("Type Hint (from MappaSVG):", typeHint); // THIS IS ALSO CRUCIAL
 
     let selectedItem = null;
 
-    // First, check if it's a special point (stage or entrance)
-    const specialPoint = specialPoints.find((sp) => sp.id === pointId);
-    if (specialPoint) {
-        console.log("Found as Special Point:", specialPoint); // Aggiungi questo
-        if (specialPoint.type === "stage") {
-            const stageShows = getShowsForLocation(specialPoint.location);
-            selectedItem = {
-                ...specialPoint,
-                shows: stageShows,
-                type: "stage",
-            };
-        } else {
-            selectedItem = specialPoint;
-        }
-    } else if (typeHint === 'service' || !typeHint) { // Prova prima come servizio se suggerito o se non c'è suggerimento
-        const service = services?.find((s) => s.id === pointId);
-        if (service) {
-            console.log("Found as Service:", service); // Aggiungi questo
-            selectedItem = { ...service, type: "service" }; // Aggiungi type per il drawer
+    // 1. Check for special points (e.g., 'special-entrance', 'special-stage1')
+    if (typeHint && (typeHint === 'entrance' || typeHint === 'stage' || typeHint === 'kids')) {
+        const originalSpecialId = pointId.replace('special-', ''); // Remove prefix
+        selectedItem = specialPoints.find((sp) => sp.id === originalSpecialId);
+        // Add show data if it's a stage
+        if (selectedItem && selectedItem.type === "stage") {
+            selectedItem = { ...selectedItem, shows: getShowsForLocation(selectedItem.location) };
         }
     }
 
-    // Se non è un servizio o un punto speciale, prova come attrazione
+    // 2. If not found, try as a service
+    if (!selectedItem && typeHint === 'service') { // Only search services if typeHint explicitly says so
+        const originalServiceId = pointId.replace('service-', ''); // Remove prefix
+        selectedItem = services?.find((s) => s.id === originalServiceId);
+        if (selectedItem) {
+            selectedItem = { ...selectedItem, type: "service" }; // Ensure type is set for drawer
+        }
+    }
+
+    // 3. If still not found, try as an attraction
+    if (!selectedItem && typeHint === 'attraction') { // Only search attractions if typeHint explicitly says so
+        const originalAttractionId = pointId.replace('attraction-', ''); // Remove prefix
+        selectedItem = attractions?.find((a) => a.id === originalAttractionId);
+    }
+
+    // Fallback for unexpected cases (should be rare with proper prefixes and type hints)
     if (!selectedItem) {
-        const attraction = attractions?.find((a) => a.id === pointId);
-        if (attraction) {
-            console.log("Found as Attraction:", attraction); // Aggiungi questo
-            selectedItem = attraction;
+        console.warn("Could not find any item for ID:", pointId, "with type hint:", typeHint);
+        // As a last resort, if typeHint wasn't passed or was wrong,
+        // you could try searching all collections without prefixing.
+        // However, the prefixed approach is much safer.
+        selectedItem = attractions?.find(a => a.id === pointId) || services?.find(s => s.id === pointId) || specialPoints.find(sp => sp.id === pointId);
+        if (selectedItem) {
+            console.warn("Found item via fallback (no prefix/typeHint match):", selectedItem);
         }
     }
 
 
-    console.log("Selected Item after logic:", selectedItem); // Aggiungi questo
+    console.log("Selected Item after logic:", selectedItem); // FINAL RESULT
 
     if (selectedItem) {
         setSelectedPoint(selectedItem);
         setShowDrawer(true);
-        setHighlightedItem(selectedItem.id);
+        // Highlight with the prefixed ID, as MappaSVG uses it for highlighting
+        setHighlightedItem(pointId); 
 
         setTimeout(() => {
             setHighlightedItem(null);
