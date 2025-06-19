@@ -246,15 +246,13 @@ export default function PlannerManager() {
 
   // Apre il dialog per la modifica di un planner esistente
   const openEditPlannerDialog = (planner) => {
-    setPlannerToManage(planner); // Sets the planner to be edited
-
-    // Initialize formData from the planner object, ensuring IDs are extracted from nested objects
-    setFormData({
+    setPlannerToManage(planner); // Imposta il planner da modificare
+    setFormData({ // Popola il form con i dati del planner esistente
       title: planner.title || "",
       description: planner.description || "",
-      attractionIds: planner.attractions?.map((a) => a.id) || [], // Correctly map objects to IDs, fallback to empty array
-      serviceIds: planner.services?.map((s) => s.id) || [], // Correctly map objects to IDs, fallback to empty array
-      showIds: planner.shows?.map((s) => s.id) || [], // Correctly map objects to IDs, fallback to empty array
+      attractionIds: planner.attractions?.map((a) => a.id) || planner.attractionIds || [],
+      serviceIds: planner.services?.map((s) => s.id) || planner.serviceIds || [],
+      showIds: planner.shows?.map((s) => s.id) || planner.showIds || [],
     });
     setShowManagePlannerDialog(true);
   };
