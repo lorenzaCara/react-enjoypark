@@ -411,10 +411,10 @@ export default function PlannerManager() {
             ref={cardRef}
             className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden mb-8 mx-4 lg:mx-8"
           >
-            <div className="p-8 border-b border-gray-100">
+            <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex-shrink-0 flex items-center justify-center">
                     <ListTodo className="w-6 h-6 text-teal-700"  size='icon'/>
                   </div>
                   <div>
