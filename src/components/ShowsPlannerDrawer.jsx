@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
 import { AlertCircle, MapPin, Clock, Calendar, Plus, Ticket } from "lucide-react"
+import { usePlanners } from "@/contexts/PlannerProvider"
 
 export default function ShowsPlannerDrawer({
   selectedShow,
@@ -14,6 +15,7 @@ export default function ShowsPlannerDrawer({
   updatePlanner,
   toast,
 }) {
+  const { addShowToPlanner: addSingleShowToPlanner } = usePlanners()
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [plannerOption, setPlannerOption] = useState("new")
   const [selectedExistingPlanner, setSelectedExistingPlanner] = useState(null)
@@ -81,10 +83,8 @@ export default function ShowsPlannerDrawer({
           description: `"${show.title}" has been added to a new planner for ${new Date(formattedDate).toLocaleDateString("en-US")}!`,
         });
       } else {
-        console.log("Adding show to an existing planner.");
         const existingPlanner = planners.find((p) => p.id === Number(selectedExistingPlanner));
         if (!existingPlanner) {
-          console.error("Selected planner not found. ID:", selectedExistingPlanner);
           toast({
             title: "Error",
             description: "Selected planner not found",

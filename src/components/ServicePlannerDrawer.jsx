@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetCl
 import { AlertCircle, MapPin, Clock, Plus, Ticket, Star, Calendar, ChefHat, Coffee, Car } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useServices } from "@/contexts/ServicesProvider"
+import { usePlanners } from "@/contexts/PlannerProvider"
 
 export default function ServiceDetailsDrawer({
   selectedService,
@@ -17,6 +18,7 @@ export default function ServiceDetailsDrawer({
   toast,
 }) {
   const { createServiceBooking } = useServices()
+  const { addServiceToPlanner: addSingleServiceToPlanner } = usePlanners()
 
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [plannerOption, setPlannerOption] = useState("new")
@@ -131,96 +133,90 @@ export default function ServiceDetailsDrawer({
   }
 
   // Function to add the service to the planner
-  const addServiceToPlanner = async (service) => {
-    if (!selectedTicket) {
-      toast({
-        title: "Error",
-        description: "Select a valid ticket to add to the planner.",
-        variant: "destructive",
-      })
-      return
-    }
+  // Function to add the service to the planner
+const addServiceToPlanner = async (service) => {
+  if (!selectedTicket) {
+    toast({
+      title: "Error",
+      description: "Select a valid ticket to add to the planner.",
+      variant: "destructive",
+    })
+    return
+  }
 
-    // Planner can only be created/added to for tickets that are not "ACTIVE" (already used/booked)
-    if (selectedTicket.status === "ACTIVE") {
-      toast({
-        title: "Attention",
-        description: "It is not possible to add services to a planner with an already active ticket (used/booked).",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (selectedTicket.status === "ACTIVE") {
+    toast({
+      title: "Attention",
+      description: "It is not possible to add services to a planner with an already active ticket (used/booked).",
+      variant: "destructive",
+    });
+    return;
+  }
 
+  const formattedDate = toDateOnly(selectedTicket.validFor)
 
-    const formattedDate = toDateOnly(selectedTicket.validFor)
-
-    setIsCreatingPlanner(true)
-    try {
-      if (plannerOption === "new") {
-        const plannerData = {
-          ticketId: selectedTicket.id,
-          userId: selectedTicket.userId,
-          title: plannerTitle.trim() || `Planner for ${service.name}`,
-          description: plannerDescription || `Planner for the service ${service.name}`,
-          date: formattedDate,
-          serviceIds: [service.id],
-          attractionIds: [],
-          showIds: [],
-        }
-
-        await createPlanner(plannerData)
-        toast({
-          title: "Planner created!",
-          description: `"${service.name}" has been added to a new planner for ${new Date(formattedDate).toLocaleDateString("en-US")}!`,
-          className: "bg-white text-gray-900 border border-gray-200 shadow-md"
-        })
-      } else {
-        const existingPlanner = planners.find((p) => p.id === Number(selectedExistingPlanner))
-        if (!existingPlanner) {
-          toast({
-            title: "Error",
-            description: "Selected planner not found",
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (existingPlanner.serviceIds?.includes(service.id)) {
-          toast({
-            title: "Attention",
-            description: "This service is already present in the selected planner",
-            variant: "destructive",
-          })
-          return
-        }
-
-        const updatedServiceIds = [...(existingPlanner.serviceIds || []), service.id]
-        const updatedPlannerData = {
-          ...existingPlanner,
-          serviceIds: updatedServiceIds,
-        }
-
-        await updatePlanner(existingPlanner.id, updatedPlannerData)
-
-        toast({
-          title: "Service added!",
-          description: `"${service.name}" has been added to the planner "${existingPlanner.title}"`,
-        })
+  setIsCreatingPlanner(true)
+  try {
+    if (plannerOption === "new") {
+      const plannerData = {
+        ticketId: selectedTicket.id,
+        userId: selectedTicket.userId,
+        title: plannerTitle.trim() || `Planner for ${service.name}`,
+        description: plannerDescription || `Planner for the service ${service.name}`,
+        date: formattedDate,
+        serviceIds: [service.id],
+        attractionIds: [],
+        showIds: [],
       }
 
-      resetForm()
-      onClose()
-    } catch (error) {
-      console.error("Error while adding service to planner:", error)
+      await createPlanner(plannerData)
       toast({
-        title: "Error",
-        description: `Error during operation: ${error.message}`,
-        variant: "destructive",
+        title: "Planner created!",
+        description: `"${service.name}" has been added to a new planner for ${new Date(formattedDate).toLocaleDateString("en-US")}!`,
+        className: "bg-white text-gray-900 border border-gray-200 shadow-md"
       })
-    } finally {
-      setIsCreatingPlanner(false)
+    } else {
+      const existingPlanner = planners.find((p) => p.id === Number(selectedExistingPlanner))
+      if (!existingPlanner) {
+        toast({
+          title: "Error",
+          description: "Selected planner not found",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const alreadyInPlanner = existingPlanner.services?.some((s) => s.id === service.id)
+      if (alreadyInPlanner) {
+        toast({
+          title: "Attention",
+          description: "This service is already present in the selected planner",
+          variant: "destructive",
+        })
+        return
+      }
+
+      await addSingleServiceToPlanner(existingPlanner.id, service.id)
+
+      toast({
+        title: "Service added!",
+        description: `"${service.name}" has been added to the planner "${existingPlanner.title}"`,
+      })
     }
+
+    resetForm()
+    onClose()
+  } catch (error) {
+    console.error("Error while adding service to planner:", error)
+    toast({
+      title: "Error",
+      description: `Error during operation: ${error.message}`,
+      variant: "destructive",
+    })
+  } finally {
+    setIsCreatingPlanner(false)
   }
+}
 
   // Function to reset the planner form
   const resetForm = () => {
