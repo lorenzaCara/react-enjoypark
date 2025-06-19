@@ -23,8 +23,28 @@ export default function ShowsPlannerDrawer({
   const [plannerDescription, setPlannerDescription] = useState("")
   const [isCreatingPlanner, setIsCreatingPlanner] = useState(false)
 
-  // Function to safely extract only the date in YYYY-MM-DD format
-  const toDateOnly = (dateStr) => new Date(dateStr).toISOString().split("T")[0]
+  const toDateOnly = (dateStr) => {
+     if (!dateStr) return null;
+     const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+     const [year, month, day] = datePart.split('-').map(Number);
+     // Costruiamo la data come UTC, ma poi la trattiamo come se fosse locale
+     // Questo previene gli spostamenti di data quando si converte in ISO string
+     return new Date(Date.UTC(year, month - 1, day)).toISOString().split('T')[0];
+   };
+
+   // NUOVA FUNZIONE: per visualizzare la data in formato leggibile per l'utente, gestendo il fuso orario
+   const formatDateForDisplay = (dateStr) => {
+     if (!dateStr) return null;
+     // Costruiamo la data in modo da interpretarla come data locale specifica
+     // Questo aiuta toLocaleDateString a non spostare il giorno
+     const date = new Date(dateStr + 'T00:00:00'); // Aggiungiamo T00:00:00 per interpretare come mezzanotte locale
+     return date.toLocaleDateString("en-US", {
+       weekday: 'long',
+       year: 'numeric',
+       month: 'long',
+       day: 'numeric',
+     });
+   };
 
   // Function to get valid tickets for the show
   const getValidTicketsForShow = (show) => {
@@ -242,7 +262,7 @@ export default function ShowsPlannerDrawer({
                           <div>
                             <div className="font-normal text-gray-900">{ticket.ticketType?.name || "Ticket"}</div>
                             <div className="text-xs text-gray-500">
-                              Valid for: {new Date(ticket.validFor).toLocaleDateString("en-US")}
+                              Valid for: {formatDateForDisplay(ticket.validFor)}
                             </div>
                           </div>
                         </div>

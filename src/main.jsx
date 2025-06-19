@@ -48,7 +48,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ScrollToTop />
       <AxiosProvider>
-        <ThemeProvider>
           <UserProvider>
             {/* AppLoader avvolge tutto il contenuto dell'app */}
             <AppLoader>
@@ -100,7 +99,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Toaster />
             </AppLoader>
           </UserProvider>
-        </ThemeProvider>
       </AxiosProvider>
     </BrowserRouter>
   </React.StrictMode>,
