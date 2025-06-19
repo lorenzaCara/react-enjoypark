@@ -3,16 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
 import { AlertCircle, MapPin, Clock, Plus, Ticket } from "lucide-react"
-import { usePlanners } from "@/contexts/PlannerProvider"
 
 export default function AttractionPlannerDrawer({
   selectedAttraction,
   isDrawerOpen,
   onClose,
   purchasedTickets,
-  planners, // Questo prop non sarà più necessario se usi usePlanners
-  createPlanner, // Questo prop non sarà più necessario se usi usePlanners
-  updatePlanner, // Questo prop non sarà più necessario se usi usePlanners
+  planners,
+  createPlanner,
+  updatePlanner,
   toast,
 }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
@@ -22,35 +21,23 @@ export default function AttractionPlannerDrawer({
   const [plannerDescription, setPlannerDescription] = useState("")
   const [isCreatingPlanner, setIsCreatingPlanner] = useState(false)
 
-  // Utilizza il contesto dei planner per accedere alle funzioni
-  const {
-    planners: allPlanners, // Rinomina per evitare conflitti con il prop 'planners'
-    createPlanner: contextCreatePlanner, // Rinomina
-    updatePlanner: contextUpdatePlanner, // Rinomina
-    addAttractionToPlanner: contextAddAttractionToPlanner, // Nuova funzione
-    addingItem, // Nuovo stato per l'aggiunta singola
-    addItemError, // Nuovo errore per l'aggiunta singola
-    creating, // Stato di creazione dal context (se vuoi usarlo)
-    updating, // Stato di aggiornamento dal context (se vuoi usarlo)
-  } = usePlanners();
-
   // Funzione per estrarre solo la data in formato YYYY-MM-DD in modo sicuro
   const toDateOnly = (dateStr) => {
-    if (!dateStr) return null;
-    // Estrae solo la parte della data "YYYY-MM-DD"
-    return dateStr.split("T")[0];
-  }
-
-  // Funzione per creare un oggetto Date che rappresenti solo il giorno desiderato,
-  // senza influenzare il fuso orario o l'ora del giorno.
-  const createDateForDisplay = (dateStr) => {
-    if (!dateStr) return null;
-    const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
-    const [year, month, day] = datePart.split('-').map(Number);
-    // Crea una data locale al 00:00:00 del giorno specificato.
-    // Month è 0-indexed in JS Date, quindi month - 1.
-    return new Date(year, month - 1, day);
-  };
+        if (!dateStr) return null;
+        // Estrae solo la parte della data "YYYY-MM-DD"
+         return dateStr.split("T")[0];
+      }
+    
+      // Funzione per creare un oggetto Date che rappresenti solo il giorno desiderato,
+      // senza influenzare il fuso orario o l'ora del giorno.
+      const createDateForDisplay = (dateStr) => {
+        if (!dateStr) return null;
+        const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+        const [year, month, day] = datePart.split('-').map(Number);
+        // Crea una data locale al 00:00:00 del giorno specificato.
+        // Month è 0-indexed in JS Date, quindi month - 1.
+        return new Date(year, month - 1, day);
+      };
 
   // Funzione per ottenere i biglietti validi per l'attrazione
   const getValidTicketsForAttraction = (attraction) => {
@@ -60,8 +47,7 @@ export default function AttractionPlannerDrawer({
       purchasedTickets?.filter((ticket) => {
         if (ticket.status !== "USED" || !ticket.validFor) return false
 
-        // Verifica che il ticketType.attractions esista e contenga l'attrazione
-        const hasAccess = ticket.ticketType?.attractions?.some((ta) => ta.attractionId === attraction.id); // Modificato in attractionId
+        const hasAccess = ticket.ticketType?.attractions?.some((ta) => ta.attraction.id === attraction.id)
         return hasAccess
       }) || []
     )
@@ -84,13 +70,13 @@ export default function AttractionPlannerDrawer({
     const formattedDate = toDateOnly(selectedTicket.validFor)
     console.log("Formatted date of selected ticket:", formattedDate)
 
-    setIsCreatingPlanner(true) // Questo stato locale potrebbe non essere più necessario se usi 'creating' e 'addingItem' dal context
+    setIsCreatingPlanner(true)
     try {
       if (plannerOption === "new") {
         console.log("Creating a new planner.")
         const plannerData = {
           ticketId: selectedTicket.id,
-          // userId: selectedTicket.userId, // userId è già preso dal middleware nel backend
+          userId: selectedTicket.userId,
           title: plannerTitle.trim() || `Planner for ${attraction.name}`,
           description: plannerDescription || `Planner for the attraction ${attraction.name}`,
           date: formattedDate,
@@ -100,15 +86,14 @@ export default function AttractionPlannerDrawer({
         }
         console.log("New planner data:", plannerData)
 
-        await contextCreatePlanner(plannerData) // Usa la funzione dal context
+        await createPlanner(plannerData)
         toast({
           title: "Planner created!",
           description: `"${attraction.name}" has been added to a new planner for ${new Date(formattedDate).toLocaleDateString("en-GB")}!`,
-          className: "bg-white text-gray-900 border border-gray-200 shadow-md"
         })
-      } else { // plannerOption === "existing"
+      } else {
         console.log("Adding attraction to an existing planner.")
-        const existingPlanner = allPlanners.find((p) => p.id === Number(selectedExistingPlanner))
+        const existingPlanner = planners.find((p) => p.id === Number(selectedExistingPlanner))
         if (!existingPlanner) {
           console.error("Selected planner not found. ID:", selectedExistingPlanner)
           toast({
@@ -121,25 +106,31 @@ export default function AttractionPlannerDrawer({
 
         console.log("Existing planner found:", existingPlanner)
 
-        // Controlla se l'attrazione è già presente nel planner esistente
-        // Nota: existingPlanner.attractions è ora un array di oggetti completi, non solo ID
-        if (existingPlanner.attractions?.some(a => a.id === attraction.id)) {
-            console.warn("The attraction is already in the selected planner.")
-            toast({
-                title: "Warning",
-                description: "This attraction is already in the selected planner",
-                variant: "destructive",
-            })
-            return
+        if (existingPlanner.attractionIds?.includes(attraction.id)) {
+          console.warn("The attraction is already in the selected planner.")
+          toast({
+            title: "Warning",
+            description: "This attraction is already in the selected planner",
+            variant: "destructive",
+          })
+          return
         }
 
-        // CHIAMATA AL NUOVO ENDPOINT DI AGGIUNTA SINGOLA
-        await contextAddAttractionToPlanner(existingPlanner.id, attraction.id);
+        const updatedAttractionIds = [...(existingPlanner.attractionIds || []), attraction.id]
+        console.log("Updated list of attractionIds:", updatedAttractionIds)
+
+        const updatedPlannerData = {
+          ...existingPlanner,
+          attractionIds: updatedAttractionIds,
+        }
+
+        console.log("Full updated planner data:", updatedPlannerData)
+
+        await updatePlanner(existingPlanner.id, updatedPlannerData)
 
         toast({
           title: "Attraction added!",
           description: `"${attraction.name}" has been added to the planner "${existingPlanner.title}"`,
-          className: "bg-white text-gray-900 border border-gray-200 shadow-md"
         })
       }
 
@@ -149,11 +140,11 @@ export default function AttractionPlannerDrawer({
       console.error("Error while adding attraction to planner:", error)
       toast({
         title: "Error",
-        description: `Something went wrong: ${error.message || addItemError || createError || updateError}`, // Migliorata gestione errore
+        description: `Something went wrong: ${error.message}`,
         variant: "destructive",
       })
     } finally {
-      setIsCreatingPlanner(false) // Puoi rimuovere questa linea se usi solo gli stati del context
+      setIsCreatingPlanner(false)
     }
   }
 
@@ -183,24 +174,15 @@ export default function AttractionPlannerDrawer({
 
   if (!selectedAttraction) return null
 
-  // Determina se il bottone di submit deve essere disabilitato
-  const isSubmitDisabled =
-    (plannerOption === "new" && (!selectedTicket || !plannerTitle.trim())) ||
-    (plannerOption === "existing" && (!selectedTicket || !selectedExistingPlanner)) ||
-    isCreatingPlanner || // Vecchio stato locale, puoi usare 'creating' || 'addingItem' dal context
-    creating || // Stato di creazione dal context
-    addingItem; // Stato di aggiunta singola dal context
-
-
   return (
     <Sheet open={isDrawerOpen} onOpenChange={handleDrawerOpen}>
       <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto">
         <SheetHeader className="mb-6 mt-8">
           <div className="flex justify-between items-start">
-            <SheetTitle className="text-2xl font-normal text-gray-900 mb-2">{selectedAttraction.name}</SheetTitle>
-            <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
-              {selectedAttraction.category}
-            </Badge>
+              <SheetTitle className="text-2xl font-normal text-gray-900 mb-2">{selectedAttraction.name}</SheetTitle>
+              <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+                {selectedAttraction.category}
+              </Badge>
           </div>
           <SheetDescription className="text-start text-gray-600 mt-4">
             {selectedAttraction.description || "Attraction description not available."}
@@ -258,12 +240,12 @@ export default function AttractionPlannerDrawer({
                           <div>
                             <div className="font-normal text-gray-900">{ticket.ticketType?.name || "Ticket"}</div>
                             <div className="text-xs text-gray-500">
-                              Valid for: {createDateForDisplay(ticket.validFor)?.toLocaleDateString("en-GB", {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })}
+                             Valid for: {createDateForDisplay(ticket.validFor)?.toLocaleDateString("en-GB", {
+                               weekday: 'long',
+                               year: 'numeric',
+                               month: 'long',
+                               day: 'numeric',
+                             })}
                             </div>
                           </div>
                         </div>
@@ -310,7 +292,7 @@ export default function AttractionPlannerDrawer({
               </label>
 
               {/* Mostra l'opzione per planner esistenti solo se ce ne sono */}
-              {allPlanners.filter( // Usa allPlanners dal context
+              {planners.filter(
                 (p) => p.ticketId === selectedTicket.id && toDateOnly(p.date) === toDateOnly(selectedTicket.validFor),
               ).length > 0 && (
                 <label className="flex items-center p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
@@ -361,7 +343,7 @@ export default function AttractionPlannerDrawer({
               <div className="mt-4">
                 <label className="text-sm font-normal text-gray-700 mb-2 block">Select an existing planner</label>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {allPlanners // Usa allPlanners dal context
+                  {planners
                     .filter(
                       (p) =>
                         p.ticketId === selectedTicket.id && toDateOnly(p.date) === toDateOnly(selectedTicket.validFor),
@@ -405,13 +387,15 @@ export default function AttractionPlannerDrawer({
               return (
                 <Button
                   onClick={() => addAttractionToPlanner(selectedAttraction)}
-                  disabled={isSubmitDisabled} // Usa il nuovo stato combinato
+                  disabled={
+                    isCreatingPlanner || !selectedTicket || (plannerOption === "existing" && !selectedExistingPlanner)
+                  }
                   className="flex-1 bg-teal-700 hover:bg-teal-600 text-white rounded-full h-12 font-normal"
                 >
-                  {(isCreatingPlanner || creating || addingItem) ? ( // Usa tutti gli stati di caricamento
+                  {isCreatingPlanner ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      {plannerOption === "new" ? "Creating..." : "Adding..."}
+                      {plannerOption === "new" ? "Creation..." : "Adding..."}
                     </>
                   ) : (
                     <>

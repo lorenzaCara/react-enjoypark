@@ -14,11 +14,6 @@ export function PlannerProvider({ children }) {
   const [updating, setUpdating] = useState(false)
   const [updateError, setUpdateError] = useState(null)
 
-  // Nuovi stati per le operazioni di aggiunta singola
-  const [addingItem, setAddingItem] = useState(false)
-  const [addItemError, setAddItemError] = useState(null)
-
-
   const myaxios = useAxios()
 
   // Carica tutti i planner
@@ -52,15 +47,15 @@ export function PlannerProvider({ children }) {
     }
   }
 
-  // Aggiorna un planner esistente (modifica completa con 'set')
+  // Aggiorna un planner esistente
   const updatePlanner = async (id, plannerData) => {
     setUpdating(true)
     setUpdateError(null)
     try {
       const { data } = await myaxios.put(`/planners/${id}`, plannerData)
 
-      // Aggiorna lo stato locale dei planner con i dati aggiornati dal backend
-      setPlanners((prev) => prev.map((planner) => (planner.id === id ? data : planner)))
+      // Aggiorna lo stato locale dei planner
+      setPlanners((prev) => prev.map((planner) => (planner.id === id ? { ...planner, ...data } : planner)))
 
       return data
     } catch (err) {
@@ -83,71 +78,6 @@ export function PlannerProvider({ children }) {
     }
   }
 
-  // --- NUOVE LOGICHE PER AGGIUNTA SINGOLA ---
-
-  // Aggiungi una singola attrazione a un planner
-  const addAttractionToPlanner = async (plannerId, attractionId) => {
-    setAddingItem(true)
-    setAddItemError(null)
-    try {
-      const { data } = await myaxios.post(`/planners/${plannerId}/attractions`, { attractionId })
-      
-      // Aggiorna lo stato locale per riflettere l'aggiunta
-      setPlanners((prev) => prev.map((planner) => (planner.id === plannerId ? data : planner)))
-      
-      return data
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || "Errore nell'aggiunta dell'attrazione."
-      setAddItemError(message)
-      throw new Error(message)
-    } finally {
-      setAddingItem(false)
-    }
-  }
-
-  // Aggiungi un singolo show a un planner
-  const addShowToPlanner = async (plannerId, showId) => {
-    setAddingItem(true)
-    setAddItemError(null)
-    try {
-      const { data } = await myaxios.post(`/planners/${plannerId}/shows`, { showId })
-      
-      // Aggiorna lo stato locale per riflettere l'aggiunta
-      setPlanners((prev) => prev.map((planner) => (planner.id === plannerId ? data : planner)))
-      
-      return data
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || "Errore nell'aggiunta dello show."
-      setAddItemError(message)
-      throw new Error(message)
-    } finally {
-      setAddingItem(false)
-    }
-  }
-
-  // Aggiungi un singolo servizio a un planner
-  const addServiceToPlanner = async (plannerId, serviceId) => {
-    setAddingItem(true)
-    setAddItemError(null)
-    try {
-      const { data } = await myaxios.post(`/planners/${plannerId}/services`, { serviceId })
-      
-      // Aggiorna lo stato locale per riflettere l'aggiunta
-      setPlanners((prev) => prev.map((planner) => (planner.id === plannerId ? data : planner)))
-      
-      return data
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || "Errore nell'aggiunta del servizio."
-      setAddItemError(message)
-      throw new Error(message)
-    } finally {
-      setAddingItem(false)
-    }
-  }
-
-  // --- FINE NUOVE LOGICHE ---
-
-
   useEffect(() => {
     fetchPlanners()
   }, [])
@@ -166,12 +96,6 @@ export function PlannerProvider({ children }) {
         updating,
         updateError,
         deletePlanner,
-        // Nuovi valori esposti dal context
-        addAttractionToPlanner,
-        addShowToPlanner,
-        addServiceToPlanner,
-        addingItem,
-        addItemError,
       }}
     >
       {children}
@@ -182,3 +106,4 @@ export function PlannerProvider({ children }) {
 export function usePlanners() {
   return useContext(PlannerContext)
 }
+
