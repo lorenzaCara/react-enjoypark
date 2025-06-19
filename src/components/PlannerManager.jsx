@@ -23,11 +23,13 @@ import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"; // Usa react-router-dom se stai usando Link per la navigazione
 import DeletePlannerDialog from "./Delete-planner-dialog"
 import ManagePlannerDialog from "./Manage-planner-dialog"
+import { useServices } from "@/contexts/ServicesProvider"
 
 export default function PlannerManager() {
   const { purchasedTickets, loading: ticketsLoading } = useTickets()
   const { shows, isLoading: showsLoading } = useShows()
   const { attractions, isLoading: attractionsLoading } = useAttractions()
+  const { services, isLoading: servicesLoading } = useServices()
   const { planners, loading: plannersLoading, createPlanner, updatePlanner, deletePlanner } = usePlanners()
   const { toast } = useToast()
 
@@ -129,10 +131,11 @@ export default function PlannerManager() {
 
   // Servizi disponibili
   const getAvailableServices = (ticket) => {
-    if (!ticket || !attractions) return [] // Assuming attractions also contains services for now, adjust if services are separate
-    const ticketServiceIds = ticket.ticketType?.services?.map(s => s.service.id) || [];
-    return attractions.filter(service => ticketServiceIds.includes(service.id)); // Adjust this filter if 'services' is a different array
-  }
+  if (!ticket || !services) return []
+  const ticketServiceIds = ticket.ticketType?.services?.map(s => s.service.id) || []
+  return services.filter(service => ticketServiceIds.includes(service.id))
+}
+
 
 
   const resetFormAndDialogState = () => {
@@ -264,14 +267,14 @@ export default function PlannerManager() {
   }
 
   const handleItemToggle = (itemId, type) => {
-    const field = `${type}Ids`
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].includes(itemId) ? prev[field].filter((id) => id !== itemId) : [...prev[field], itemId],
-    }))
-  }
+  const field = `${type}Ids`
+  setFormData((prev) => ({
+    ...prev,
+    [field]: prev[field].includes(itemId) ? prev[field].filter((id) => id !== itemId) : [...prev[field], itemId],
+  }))
+}
 
-  if (ticketsLoading || showsLoading || attractionsLoading || plannersLoading) {
+  if (ticketsLoading || showsLoading || attractionsLoading || plannersLoading || servicesLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
