@@ -335,7 +335,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-light overflow-hidden border-4 border-white/30">
+                  <div className="lg:w-20 lg:h-20 md:w-20 md:h-20 w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-light overflow-hidden border-4 border-white/30">
                     {profileImage ? (
                       <img
                         src={profileImage || "/placeholder.svg"}

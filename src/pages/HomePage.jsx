@@ -5,7 +5,7 @@ import { useServices } from "@/contexts/ServicesProvider"
 import { useShows } from "@/contexts/ShowsProvider"
 import { useTickets } from "@/contexts/TicketsProvider"
 import { Link, useNavigate } from "react-router"
-import React, { useRef, useState } from 'react'; // Import React, useRef, and useState
+import { useRef, useState } from 'react'; 
 
 export default function HomePage() {
   const navigate = useNavigate()
