@@ -667,6 +667,7 @@ export default function ProfilePage() {
                       const service = booking.service || { name: "Servizio" }
 
                       return (
+                        
                         <div
                           key={booking.id}
                           className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-teal-50 transition-all duration-300"
