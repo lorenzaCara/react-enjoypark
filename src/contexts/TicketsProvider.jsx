@@ -55,36 +55,23 @@ export function TicketsProvider({ children }) {
     setCreating(true);
     setCreateError(null);
     try {
-      // --- INIZIO MODIFICHE QUI ---
-      // Clona ticketData per non modificare l'oggetto originale se viene riutilizzato
       const payload = { ...ticketData };
 
-      // 1. Formatta 'validFor' in 'YYYY-MM-DD'
       if (payload.validFor) {
-        // Se validFor è già un oggetto Date, usalo direttamente.
-        // Altrimenti, se è una stringa ISO, convertila prima in Date.
+
         const dateObj = payload.validFor instanceof Date
           ? payload.validFor
           : new Date(payload.validFor);
 
-        // Estrai anno, mese e giorno
         const year = dateObj.getFullYear();
         const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // Mese è 0-11
         const day = dateObj.getDate().toString().padStart(2, '0');
 
         payload.validFor = `${year}-${month}-${day}`; // Formato desiderato
       } else {
-          // Se validFor non è fornito, potresti voler aggiungere un errore
-          // o impostare un valore predefinito (es. oggi).
-          // Per ora, lo lasciamo passare null/undefined se non presente,
-          // ma il backend Zod validator potrebbe lamentarsi se lo richiede.
-          // Dato che validFor è richiesto dal Zod validator,
-          // assicurati che il componente che chiama createTicket lo passi sempre.
+          // errore se validfor non è definito
       }
-
-      // 2. Rimuovi 'userId' dal payload, lo gestisce il backend
       delete payload.userId;
-      // --- FINE MODIFICHE QUI ---
 
       console.log("Ticket inviato:", payload); // Logga il payload modificato
       const { data } = await myaxios.post("/tickets", payload); // Invia il payload modificato
@@ -110,7 +97,6 @@ export function TicketsProvider({ children }) {
     setUpdating(true);
     setUpdateError(null);
     try {
-      // --- MODIFICHE SIMILI ANCHE QUI PER UPDATE SE validFor PUÒ ESSERE AGGIORNATO ---
       const payload = { ...updatedData };
       if (payload.validFor) {
         const dateObj = payload.validFor instanceof Date
@@ -121,8 +107,7 @@ export function TicketsProvider({ children }) {
         const day = dateObj.getDate().toString().padStart(2, '0');
         payload.validFor = `${year}-${month}-${day}`;
       }
-      delete payload.userId; // Anche qui, non inviare userId se non è modificabile dal client
-      // --- FINE MODIFICHE SIMILI ---
+      delete payload.userId;
 
       const { data } = await myaxios.put(`/tickets/${ticketId}`, payload);
       setPurchasedTickets((prev) =>

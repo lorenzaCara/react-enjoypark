@@ -351,7 +351,7 @@ export default function ProfilePage() {
                 <div>
                   <h1
                     className={`transition-all duration-700 font-light ${
-                      isFixed ? "text-2xl" : "text-4xl lg:text-4xl"
+                      isFixed ? "text-xl" : "text-4xl lg:text-4xl"
                     }`}
                   >
                     Hi, {user?.firstName || "User"}!
@@ -368,9 +368,9 @@ export default function ProfilePage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="bg-white/10 hover:bg-white/20 border border-white/20 hover:text-white text-white rounded-2xl h-12 w-12 p-0 transition-all duration-300"
+                    className="bg-white/10 hover:bg-white/20 border border-white/20 hover:text-white text-white rounded-2xl h-10 w-10 p-0 transition-all duration-300"
                   >
-                    <Bell className="w-5 h-5" />
+                    <Bell className="w-4 h-4" />
                   </Button>
                 </Link>
                 {hasUnread && (

@@ -4,7 +4,8 @@ import { useAttractions } from "@/contexts/AttractionsProvider"
 import { useServices } from "@/contexts/ServicesProvider"
 import { useShows } from "@/contexts/ShowsProvider"
 import { useTickets } from "@/contexts/TicketsProvider"
-import { Link, useNavigate } from "react-router" 
+import { Link, useNavigate } from "react-router"
+import React, { useRef, useState } from 'react'; // Import React, useRef, and useState
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -27,6 +28,47 @@ export default function HomePage() {
     STANDARD: "/img/standard-ticket.jpg",
     VIP: "/img/vip-ticket.jpg",
   };
+
+  // State and ref for draggable tickets
+  const scrollContainerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    if (scrollContainerRef.current) {
+      setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+      setScrollLeft(scrollContainerRef.current.scrollLeft);
+      scrollContainerRef.current.style.cursor = 'grabbing'; // Visual feedback for dragging
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return; // Only drag if the mouse is pressed
+    e.preventDefault(); // Prevent text selection and other default browser behaviors
+    if (scrollContainerRef.current) {
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 1.5; // Adjust scroll speed (e.g., 1.5 for a bit faster)
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab'; // Reset cursor
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Important: if the mouse leaves the element while dragging, stop dragging
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab'; // Reset cursor
+    }
+  };
+
 
   // Loading state
   if (attractionsLoading || showsLoading || ticketsLoading || servicesLoading) {
@@ -57,7 +99,7 @@ export default function HomePage() {
       <section className="relative h-screen rounded-2xl flex items-center justify-center overflow-hidden lg:mx-4">
         <div
           className="absolute m-4 rounded-3xl inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/img/homepage.jpg')" }} 
+          style={{ backgroundImage: "url('/img/homepage.jpg')" }}
         >
           <div className="absolute rounded-3xl inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-600 opacity-40"></div> {/* Riduci l'opacità del gradiente se l'immagine è molto scura */}
           <div className="absolute rounded-3xl inset-0 bg-black/20"></div>
@@ -132,17 +174,17 @@ export default function HomePage() {
                   <div>
                     <h3 className="text-3xl font-light mb-4">Explore now</h3>
                     <p className="text-lg text-gray-200 mb-6">
-                    Discover {attractions?.length || 0}+ futuristic attractions that defy the laws of physics and imagination.
+                      Discover {attractions?.length || 0}+ futuristic attractions that defy the laws of physics and imagination.
                     </p>
                   </div>
-                    <Link to='/attractions' className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
-                      >
-                        Explore attractions
-                      </Button>
-                    </Link>
+                  <Link to='/attractions' className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
+                    >
+                      Explore attractions
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
 
@@ -162,14 +204,14 @@ export default function HomePage() {
                       Immerse yourself in digital environments that redefine the idea of exploration.
                     </p>
                   </div>
-                    <Link to='/map' className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
-                      >
-                        Explore map
-                      </Button>
-                    </Link>
+                  <Link to='/map' className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
+                    >
+                      Explore map
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
@@ -192,14 +234,14 @@ export default function HomePage() {
                       Experience shows that transform reality through holograms, augmented reality, and interactive performances.
                     </p>
                   </div>
-                    <Link to='/shows' className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
-                      >
-                        Explore shows
-                      </Button>
-                    </Link>
+                  <Link to='/shows' className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="border-white dark:text-white hover:bg-white text-teal-800 rounded-full px-8 py-3 mx-auto"
+                    >
+                      Explore shows
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
 
@@ -266,7 +308,14 @@ export default function HomePage() {
             </div>
 
             {/* Colonna Destra: Biglietti (mostrata sopra su mobile) */}
-            <div className="overflow-x-auto scrollbar-hide col-span-2 px-0">
+            <div
+              className="overflow-x-auto scrollbar-hide col-span-2 px-0 cursor-grab"
+              ref={scrollContainerRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave} 
+            >
               <div className="flex gap-4 min-w-max scrollbar-hide">
                 {featuredTickets.map((ticket) => (
                   <Card
@@ -276,10 +325,10 @@ export default function HomePage() {
                     <CardContent className="flex flex-col justify-between h-full p-6">
                       <div>
                         <img
-                            src={imageMap[ticket.name]} // fallback se manca
-                            alt={ticket.name}
-                            className="object-cover w-full rounded-2xl mb-6 h-48"
-                          />
+                          src={imageMap[ticket.name]}
+                          alt={ticket.name}
+                          className="object-cover w-full rounded-2xl mb-6 h-48"
+                        />
                         <h4 className="text-xl text-gray-800 lowercase dark:text-gray-100 mb-1">{ticket.name}</h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                           {ticket.description || "Accesso completo al parco"}
@@ -303,6 +352,6 @@ export default function HomePage() {
 
         </div>
       </section>
-      </div>
+    </div>
   )
 }

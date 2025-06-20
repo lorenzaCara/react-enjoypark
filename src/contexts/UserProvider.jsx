@@ -33,8 +33,6 @@ const UserProvider = ({ children }) => {
       const res = await myaxios.get("/profile/image"); // Backend restituisce JSON con imageUrl
       if (res.data && res.data.imageUrl) {
         setProfileImage(res.data.imageUrl);
-        // È una buona idea aggiornare l'oggetto utente nel localStorage con questo URL
-        // per evitare future chiamate non necessarie.
         if (user) { // Assicurati che 'user' esista prima di provare ad aggiornarlo
           const updatedUser = { ...user, profileImage: res.data.imageUrl };
           setUser(updatedUser);
@@ -75,8 +73,6 @@ const UserProvider = ({ children }) => {
   // Questo useEffect ora gestisce il recupero dell'immagine ogni volta che 'user' cambia
   useEffect(() => {
       if (user) {
-          // Se user.profileImage è già presente, usalo.
-          // Altrimenti, prova a fetcharlo dal backend.
           if (user.profileImage) {
               setProfileImage(user.profileImage);
           } else {
@@ -85,17 +81,14 @@ const UserProvider = ({ children }) => {
       } else {
           setProfileImage(""); // Pulisci se non c'è utente
       }
-  }, [user]); // Dipende dall'oggetto user
+  }, [user]);
 
 
-  // --- MODIFICA CHIAVE QUI ---
   const profileImageUpdate = async (file) => {
     const formData = new FormData();
-    // Il backend si aspetta il campo 'image'
     formData.append("image", file); 
 
     try {
-      // Usa POST all'endpoint /profile/image come definito nel backend
       const res = await myaxios.post("/profile/image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -104,12 +97,10 @@ const UserProvider = ({ children }) => {
 
       console.log("Risposta backend upload immagine:", res.data);
 
-      // Il backend restituisce 'user' aggiornato e 'imageUrl'
       if (res.data.user && res.data.user.profileImage) { 
         const newImageUrl = res.data.user.profileImage;
-        setProfileImage(newImageUrl); // Aggiorna lo stato con l'URL GCS persistente
+        setProfileImage(newImageUrl);
         
-        // Aggiorna anche l'oggetto user nello stato e localStorage con tutti i dati aggiornati
         const updatedUser = { ...user, ...res.data.user }; 
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
