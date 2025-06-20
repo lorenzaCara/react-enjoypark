@@ -671,7 +671,7 @@ export default function ProfilePage() {
                           key={booking.id}
                           className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-teal-50 transition-all duration-300"
                         >
-                          <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-teal-500/30 rounded-2xl flex-shrink-0 flex items-center justify-center">
                             <Bookmark className="w-6 h-6 text-teal-700" />
                           </div>
                           <div className="flex-1">
