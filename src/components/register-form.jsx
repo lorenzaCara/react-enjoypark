@@ -10,7 +10,6 @@ import { useUser } from "@/contexts/UserProvider"
 import { Link } from "react-router"
 import HeptapodAll from "@/assets/HeptapodAll"
 
-// Define the Zod schema
 const registerSchema = z
   .object({
     firstName: z.string().min(1, "First name is required"),
@@ -47,7 +46,6 @@ export function RegisterForm({ className, ...props }) {
     setError("")
     setFieldErrors({})
 
-    // Validate terms
     if (!terms) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -56,7 +54,6 @@ export function RegisterForm({ className, ...props }) {
       return
     }
 
-    // Validate using Zod schema
     const validationResult = registerSchema.safeParse({
       firstName,
       lastName,
@@ -66,7 +63,6 @@ export function RegisterForm({ className, ...props }) {
     })
 
     if (!validationResult.success) {
-      // Extract and format field errors
       const errors = {}
       validationResult.error.errors.forEach((err) => {
         errors[err.path[0]] = err.message
@@ -91,7 +87,6 @@ export function RegisterForm({ className, ...props }) {
       if (errorMessage) {
         setError(errorMessage)
       } else {
-        // Navigate to home page or confirmation page
         window.location.href = "/login"
       }
     } catch (err) {

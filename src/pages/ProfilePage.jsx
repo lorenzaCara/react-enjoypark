@@ -30,7 +30,7 @@ import {
   Loader2,
   HelpingHand,
 } from "lucide-react"
-import { Link } from "react-router" // Assicurati che sia react-router-dom se stai usando Link per la navigazione
+import { Link } from "react-router" 
 import { useNotifications } from "@/contexts/NotificationProvider"
 import { useUser } from "@/contexts/UserProvider"
 import { useTickets } from "@/contexts/TicketsProvider"
@@ -43,7 +43,7 @@ import BookingManager from "@/components/BookingManager"
 import { toast } from "@/hooks/use-toast"
 import DeletePlannerDialog from "@/components/Delete-planner-dialog"
 import ManagePlannerDialog from "@/components/Manage-planner-dialog"
-import { parseISO } from "date-fns" // <--- Importazione aggiornata: solo parseISO
+import { parseISO } from "date-fns" 
 
 export default function ProfilePage() {
   const { user, profileImage, handleLogout } = useUser()
@@ -121,33 +121,25 @@ export default function ProfilePage() {
   const hasUnread = notifications.some((n) => !n.read)
   const activeTickets = purchasedTickets.filter((ticket) => ticket.status === "ACTIVE" || ticket.status === "USED")
   const today = new Date()
-  today.setHours(0, 0, 0, 0) // resetta l'orario a mezzanotte
+  today.setHours(0, 0, 0, 0) //reset ora a mezzanotte
 
   const activePlanners = planners.filter((p) => {
     const plannerDate = new Date(p.date)
-    plannerDate.setHours(0, 0, 0, 0) // anche qui reset a mezzanotte
+    plannerDate.setHours(0, 0, 0, 0) //reset ora a mezzanotte
     return plannerDate >= today
   })
 
-  // Filtra le prenotazioni dell'utente corrente
   const userBookings = serviceBookings.filter((booking) => booking.userId === user?.id)
 
-  // Funzione per gestire le date in modo sicuro
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null
-    // Questo è il posto in cui parseISO è usato per ottenere una data UTC
-    // e poi toISOString().split('T')[0] estrae la data in formato "YYYY-MM-DD"
-    // basandosi sul fuso orario UTC della stringa originale.
     return parseISO(dateStr).toISOString().split("T")[0]
   }
 
-
-  // Trova il biglietto associato al planner selezionato
   const getTicketForPlanner = (planner) => {
     return purchasedTickets.find((ticket) => ticket.id === planner.ticketId)
   }
 
-  // Filtra gli spettacoli disponibili per la data del biglietto
   const getAvailableShows = (ticket) => {
     if (!ticket || !shows) return []
 
@@ -163,19 +155,16 @@ export default function ProfilePage() {
     })
   }
 
-  // Attrazioni disponibili
   const getAvailableAttractions = (ticket) => {
     if (!ticket || !attractions) return []
     return ticket.ticketType?.attractions?.map((ta) => ta.attraction).filter(Boolean) || []
   }
 
-  // Servizi disponibili
   const getAvailableServices = (ticket) => {
     if (!ticket) return []
     return ticket.ticketType?.services ? ticket.ticketType.services.map((ts) => ts.service).filter(Boolean) : []
   }
 
-  // Funzione per aprire il dialog di modifica
   const handleEditPlanner = (planner) => {
     setSelectedPlanner(planner)
     setFormData({
@@ -188,13 +177,11 @@ export default function ProfilePage() {
     setShowEditDialog(true)
   }
 
-  // Funzione per aprire il dialog di eliminazione
   const handleDeletePlanner = (planner) => {
     setSelectedPlanner(planner)
     setShowDeleteDialog(true)
   }
 
-  // Funzione per salvare le modifiche
   const handleSavePlanner = async () => {
     if (!selectedPlanner || !formData.title.trim()) {
       toast({
@@ -242,7 +229,6 @@ export default function ProfilePage() {
     }
   }
   
-  // Function to confirm deletion
   const confirmDeletePlanner = async () => {
     if (!selectedPlanner) return
   
@@ -266,7 +252,7 @@ export default function ProfilePage() {
     }
   }  
 
-  // Funzione per gestire il toggle degli elementi
+  // per gestire il toggle degli elementi
   const handleItemToggle = (itemId, type) => {
     const field = `${type}Ids`
     setFormData((prev) => ({
@@ -275,7 +261,7 @@ export default function ProfilePage() {
     }))
   }
 
-  // Funzione per chiudere i dialog
+  // per chiudere i dialog
   const closeDialogs = () => {
     setShowEditDialog(false)
     setShowDeleteDialog(false)

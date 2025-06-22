@@ -26,29 +26,21 @@ export default function ServiceDetailsDrawer({
   const [plannerTitle, setPlannerTitle] = useState("")
   const [plannerDescription, setPlannerDescription] = useState("")
   const [isCreatingPlanner, setIsCreatingPlanner] = useState(false)
-
-  // Booking states
   const [bookingDate, setBookingDate] = useState("")
   const [bookingTime, setBookingTime] = useState("")
   const [numberOfPeople, setNumberOfPeople] = useState(2)
   const [specialRequests, setSpecialRequests] = useState("")
   const [isCreatingBooking, setIsCreatingBooking] = useState(false)
 
-  // Function to safely extract only the date in YYYY-MM-DD format
   const toDateOnly = (dateStr) => {
         if (!dateStr) return null;
-        // Estrae solo la parte della data "YYYY-MM-DD"
          return dateStr.split("T")[0];
       }
     
-      // Funzione per creare un oggetto Date che rappresenti solo il giorno desiderato,
-      // senza influenzare il fuso orario o l'ora del giorno.
       const createDateForDisplay = (dateStr) => {
         if (!dateStr) return null;
-        const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+        const datePart = dateStr.split('T')[0];
         const [year, month, day] = datePart.split('-').map(Number);
-        // Crea una data locale al 00:00:00 del giorno specificato.
-        // Month è 0-indexed in JS Date, quindi month - 1.
         return new Date(year, month - 1, day);
       };
 
@@ -56,17 +48,15 @@ export default function ServiceDetailsDrawer({
     if (selectedTicket && selectedTicket.validFor) {
       setBookingDate(toDateOnly(selectedTicket.validFor));
     } else {
-      setBookingDate(""); // Clear the date if no ticket is selected or validFor is missing
+      setBookingDate(""); 
     }
   }, [selectedTicket]);
 
-  // Checks if the service is bookable
   const isBookableService = () => {
     const bookableTypes = ["restaurant", "café", "rental"]
     return bookableTypes.includes(selectedService?.type?.toLowerCase())
   }
 
-  // Gets the appropriate icon for the service type
   const getServiceIcon = () => {
     switch (selectedService?.type?.toLowerCase()) {
       case "restaurant":
@@ -80,13 +70,11 @@ export default function ServiceDetailsDrawer({
     }
   }
 
-  // Function to get valid tickets for the service
   const getValidTicketsForService = (service) => {
     if (!service) return []
 
     return (
       purchasedTickets?.filter((ticket) => {
-        // Only include "ACTIVE" and "USED" tickets, and those with validFor
         if (!["ACTIVE", "USED"].includes(ticket.status) || !ticket.validFor) return false
 
         const hasAccess = ticket.ticketType?.services?.some((ts) => ts.serviceId === service.id)
@@ -108,15 +96,13 @@ export default function ServiceDetailsDrawer({
   
     setIsCreatingBooking(true)
     try {
-      // Combine date and time into a DateTime format
       const bookingDateTime = new Date(`${bookingDate}T${bookingTime}:00`)
-      const isoString = bookingDateTime.toISOString() // automatically adds Z
+      const isoString = bookingDateTime.toISOString()
   
       const bookingData = {
         serviceId: selectedService.id,
-        // Send ticketId only if selectedTicket is present, otherwise null
         ticketId: selectedTicket ? selectedTicket.id : null,
-        userId: selectedTicket ? selectedTicket.userId : null, // Ensure you handle userId if there's no ticket
+        userId: selectedTicket ? selectedTicket.userId : null,
         bookingTime: isoString,
         numberOfPeople: numberOfPeople,
         specialRequests: specialRequests.trim() || null,
@@ -147,8 +133,6 @@ export default function ServiceDetailsDrawer({
     }
   }
 
-  // Function to add the service to the planner
-  // Function to add the service to the planner
 const addServiceToPlanner = async (service) => {
   if (!selectedTicket) {
     toast({
@@ -233,7 +217,6 @@ const addServiceToPlanner = async (service) => {
   }
 }
 
-  // Function to reset the planner form
   const resetForm = () => {
     setSelectedTicket(null)
     setPlannerOption("new")
@@ -242,7 +225,6 @@ const addServiceToPlanner = async (service) => {
     setPlannerDescription("")
   }
 
-  // Function to reset the booking form
   const resetBookingForm = () => {
     setBookingDate("")
     setBookingTime("")
@@ -250,7 +232,6 @@ const addServiceToPlanner = async (service) => {
     setSpecialRequests("")
   }
 
-  // Handles drawer opening
   const handleDrawerOpen = (open) => {
     if (open) {
       resetForm()
@@ -359,11 +340,8 @@ const addServiceToPlanner = async (service) => {
           )}
         </div>
 
-        {/* Tabs per Booking e Planner */}
-        {/* The Tabs component itself should only render if there's at least one option to show */}
         {(isBookableService() || (selectedTicket && selectedTicket.status !== "ACTIVE" && validTickets.length > 0)) && (
           <div className="mb-6">
-            {/* Determine the default tab based on whether it's bookable */}
             <Tabs defaultValue={isBookableService() ? "booking" : "planner"} className="w-full">
               <TabsList className="grid w-full" style={{ gridTemplateColumns: (isBookableService() && selectedTicket && selectedTicket.status !== "ACTIVE" ) ? "repeat(2, 1fr)" : "repeat(1, 1fr)" }}>
                 {isBookableService() && <TabsTrigger value="booking" className="font-normal">Book</TabsTrigger>}
@@ -372,7 +350,7 @@ const addServiceToPlanner = async (service) => {
                 )}
               </TabsList>
 
-              {/* Booking Tab Content */}
+              {/* Booking Tab */}
               {isBookableService() && (
                 <TabsContent value="booking" className="space-y-4 mt-4">
                   <h3 className="text-lg text-gray-900 mt-8">Book {selectedService.name}</h3>
@@ -382,7 +360,7 @@ const addServiceToPlanner = async (service) => {
                       <div>
                         <label className="text-sm font-normal text-gray-700 mb-1 block">Date</label>
                         {selectedTicket ? (
-                            // Se un ticket è selezionato, mostriamo solo la data del ticket come testo non modificabile
+                            // Se un ticket è selezionato, mostriamo solo la data ticket come testo non modificabile
                             <p className="w-full px-3 py-2 border border-gray-300 rounded-xl bg-gray-100 text-gray-700">
                                 {new Date(bookingDate).toLocaleDateString("it-IT")}
                             </p>
@@ -399,7 +377,6 @@ const addServiceToPlanner = async (service) => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-700"
                             />
                         )}
-                        {/* Campo nascosto per inviare il valore della data anche se l'input visibile è disabilitato */}
                         <input type="hidden" name="bookingDate" value={bookingDate} />
                       </div>
                       <div>

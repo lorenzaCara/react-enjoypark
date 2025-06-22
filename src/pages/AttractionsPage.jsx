@@ -22,7 +22,6 @@ export default function AttractionsPage() {
   const newGeneralCardsRef = useRef([])
   const newKidCardsRef = useRef([])
 
-  // Paginazione - solo per desktop
   const ITEMS_PER_PAGE = 8
   const [visibleGeneralCount, setVisibleGeneralCount] = useState(ITEMS_PER_PAGE)
   const [visibleKidCount, setVisibleKidCount] = useState(ITEMS_PER_PAGE)
@@ -30,7 +29,6 @@ export default function AttractionsPage() {
   const [loadingMoreGeneral, setLoadingMoreGeneral] = useState(false)
   const [loadingMoreKid, setLoadingMoreKid] = useState(false)
 
-  // Rileva se è desktop
   useEffect(() => {
     const checkIfDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024)
@@ -42,7 +40,6 @@ export default function AttractionsPage() {
     return () => window.removeEventListener("resize", checkIfDesktop)
   }, [])
 
-  // Animazione per nuove card generali
   useEffect(() => {
     if (newGeneralCardsRef.current.length > 0 && !loadingMoreGeneral) {
       gsap.fromTo(
@@ -64,7 +61,6 @@ export default function AttractionsPage() {
     }
   }, [visibleGeneralCount, loadingMoreGeneral])
 
-  // Animazione per nuove card kid
   useEffect(() => {
     if (newKidCardsRef.current.length > 0 && !loadingMoreKid) {
       gsap.fromTo(
@@ -125,16 +121,13 @@ export default function AttractionsPage() {
     }
   }
 
-  // Funzione per verificare se un'attrazione è legata al ticket KID
   const isKidAttraction = (attraction) => {
     if (!ticketTypes || !Array.isArray(ticketTypes)) return false
 
-    // Trova il ticket type KID
     const kidTicketType = ticketTypes.find((ticketType) => ticketType.name.toUpperCase().includes("KID"))
 
     if (!kidTicketType) return false
 
-    // Verifica se l'attrazione è inclusa nel ticket type KID
     return (
       kidTicketType.attractions?.some(
         (ticketAttraction) =>
@@ -143,11 +136,9 @@ export default function AttractionsPage() {
     )
   }
 
-  // Separa le attrazioni in due gruppi
   const generalAttractions = attractions.filter((attraction) => !isKidAttraction(attraction))
   const kidAttractions = attractions.filter((attraction) => isKidAttraction(attraction))
 
-  // Debug logging
   useEffect(() => {
     if (ticketTypes && attractions.length > 0) {
       console.log("Ticket Types:", ticketTypes)
@@ -160,7 +151,6 @@ export default function AttractionsPage() {
     }
   }, [ticketTypes, attractions, generalAttractions, kidAttractions])
 
-  // Carica più attrazioni generali
   const loadMoreGeneralAttractions = () => {
     setLoadingMoreGeneral(true)
 
@@ -170,7 +160,6 @@ export default function AttractionsPage() {
     }, 100)
   }
 
-  // Carica più attrazioni kid
   const loadMoreKidAttractions = () => {
     setLoadingMoreKid(true)
 
@@ -180,10 +169,8 @@ export default function AttractionsPage() {
     }, 500)
   }
 
-  // Filtra solo i biglietti attivi
   const activeTickets = purchasedTickets?.filter((t) => t.status === "USED") || []
 
-  // Verifica se l'utente ha un biglietto valido per l'attrazione
   const getValidTicketsForAttraction = (attraction) => {
     return activeTickets.filter((ticket) =>
       ticket.ticketType?.attractions?.some(
@@ -192,7 +179,6 @@ export default function AttractionsPage() {
     )
   }
 
-  // Gestisce il click su un'attrazione
   const handleAttractionClick = (attraction) => {
     setSelectedAttraction(attraction)
     setIsDrawerOpen(true)
@@ -204,7 +190,6 @@ export default function AttractionsPage() {
     setSelectedAttraction(null)
   }
 
-  // Componente per renderizzare una card attrazione
   const AttractionCard = ({ attraction, index, isKid = false }) => {
     const validTickets = getValidTicketsForAttraction(attraction)
     const hasValidTicket = validTickets.length > 0

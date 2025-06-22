@@ -26,14 +26,12 @@ export default function AttractionPlannerDrawer({
   const toDateOnly = (dateStr) => {
         if (!dateStr) return null;
         // Estrae solo la parte della data "YYYY-MM-DD"
-         return dateStr.split("T")[0];
+        return dateStr.split("T")[0];
       }
     
-      // Funzione per creare un oggetto Date che rappresenti solo il giorno desiderato,
-      // senza influenzare il fuso orario o l'ora del giorno.
       const createDateForDisplay = (dateStr) => {
         if (!dateStr) return null;
-        const datePart = dateStr.split('T')[0]; // Es: "2025-06-18"
+        const datePart = dateStr.split('T')[0]; 
         const [year, month, day] = datePart.split('-').map(Number);
         // Crea una data locale al 00:00:00 del giorno specificato.
         // Month è 0-indexed in JS Date, quindi month - 1.
@@ -108,7 +106,6 @@ export default function AttractionPlannerDrawer({
           return
         }
 
-        // 🔥 Usa la funzione fornita dal PlannerProvider
         await addSingleAttractionToPlanner(existingPlanner.id, attraction.id)
 
         toast({
@@ -131,7 +128,7 @@ export default function AttractionPlannerDrawer({
     }
   }
 
-  // Funzione per resettare il form
+  // Funzione per reset form
   const resetForm = () => {
     setSelectedTicket(null)
     setPlannerOption("new")
@@ -140,12 +137,12 @@ export default function AttractionPlannerDrawer({
     setPlannerDescription("")
   }
 
-  // Gestisce l'apertura del drawer
+  // Apertura del drawer
   const handleDrawerOpen = (open) => {
     if (open) {
       // Reset form quando si apre il drawer
       resetForm()
-      // Imposta un titolo predefinito basato sul nome dell'attrazione
+      // Imposta un titolo predefinito in base attrazione
       if (selectedAttraction) {
         setPlannerTitle(`Planner for ${selectedAttraction.name}`)
       }

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -17,7 +15,7 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
   if (!ticket) return null
 
   const ticketType = ticket.ticketType || {}
-  const ticketLink = `https://yourapp.com/tickets/${ticket.id}`
+  const ticketLink = `https://heptapod.vercel.app/tickets/${ticket.id}`
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -31,7 +29,6 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
 
     setIsSending(true)
 
-    // Simulate API call
     setTimeout(() => {
       setIsSending(false)
       toast({
@@ -75,7 +72,6 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
         </div>
 
         <div className="space-y-6">
-          {/* Ticket Info */}
           <div className="bg-gray-50 rounded-3xl border-2 border-gray-100 p-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center">
@@ -88,7 +84,6 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
             </div>
           </div>
 
-          {/* Share via Email */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Share via Email</h3>
 
@@ -131,7 +126,6 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
             </div>
           </div>
 
-          {/* Share via Link */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Share via Link</h3>
 
@@ -152,7 +146,6 @@ export default function TicketShareDialog({ isOpen, onClose, ticket }) {
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
             <Button
               variant="outline"

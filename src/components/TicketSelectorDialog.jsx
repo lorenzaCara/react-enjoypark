@@ -9,22 +9,20 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
     const [selectedDate, setSelectedDate] = useState("")
     const { tickets: ticketTypes, loading: ticketsLoading, error: ticketsError } = useTickets()
 
-    // Function to handle selecting a ticket type and date
     const handleTicketSelection = (ticketType) => {
         if (!selectedDate) {
             alert("Please select a date first.")
             return
         }
         const newTicket = {
-            ticketType: ticketType, // The full ticket type object
-            validFor: selectedDate, // The selected date
+            ticketType: ticketType, 
+            validFor: selectedDate, 
         }
 
-        onSelectTicket(newTicket) // Pass the selected ticket data to the parent component
-        onClose() // Close the selector dialog
+        onSelectTicket(newTicket) 
+        onClose() 
     }
 
-    // Show a loading state while ticket types are being fetched
     if (ticketsLoading) {
         return (
             <Dialog open={isOpen} onOpenChange={onClose}>
@@ -36,7 +34,6 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
         )
     }
 
-    // Show an error state if fetching ticket types fails
     if (ticketsError) {
         return (
             <Dialog open={isOpen} onOpenChange={onClose}>
@@ -62,7 +59,6 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border-2 border-gray-100">
-                {/* Header with gradient background */}
                 <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white p-6 -m-6 mb-6">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-4 text-white">
@@ -78,7 +74,6 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
                 </div>
 
                 <div className="space-y-6">
-                    {/* Date Selection */}
                     <div>
                         <label htmlFor="ticket-date" className="block text-sm font-medium text-gray-700 mb-3">
                             Select Date <span className="text-red-500">*</span>
@@ -89,11 +84,10 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="w-full rounded-2xl h-12 border-2 border-gray-200 focus:border-teal-500 transition-all duration-300 px-4"
-                            min={new Date().toISOString().split('T')[0]} // Prevents selecting past dates
+                            min={new Date().toISOString().split('T')[0]} 
                         />
                     </div>
 
-                    {/* Ticket Types */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-medium text-gray-900">Available Tickets</h3>
 
@@ -113,14 +107,12 @@ export default function TicketSelectorDialog({ isOpen, onClose, onSelectTicket }
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <div className="font-medium text-gray-900">{ticket.name}</div>
-                                            {/* Assuming your fetched ticket types might have a badge property */}
                                             {ticket.badge && (
                                                 <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100">{ticket.badge}</Badge>
                                             )}
                                         </div>
                                         <div className="text-sm text-gray-600 mt-1">{ticket.description}</div>
                                         <div className="flex items-center gap-4 mt-2 text-sm">
-                                            {/* Assuming your fetched ticket types have attractionsCount and showsCount */}
                                             {ticket.attractionsCount !== undefined && (
                                                 <div className="flex items-center gap-1 text-gray-600">
                                                     <MapPin className="w-4 h-4" />

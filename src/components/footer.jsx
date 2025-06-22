@@ -45,7 +45,9 @@ export function Footer() {
       <div className=" mx-auto px-4">
         {/* Newsletter Subscription - Full Width on all screens */}
         <div className="mb-10 lg:flex lg:justify-between lg:items-center">
-          <HeptapodAll width="130px" height="130px" color="#0d9488"/>
+          <Link to={"/"}>
+            <HeptapodAll width="130px" height="130px" color="#0d9488"/>
+          </Link>
 
           <form onSubmit={handleSubscribe} className="lg:max-w-md lg:w-full">
             <div className="relative flex-grow">

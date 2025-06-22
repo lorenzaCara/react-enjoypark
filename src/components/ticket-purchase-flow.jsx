@@ -23,10 +23,9 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [purchaseComplete, setPurchaseComplete] = useState(false)
 
-  // Purchase data state
   const [purchaseData, setPurchaseData] = useState({
     quantity: 1,
-    visitDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 1 week from now
+    visitDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Ad una settimana da oggi
     paymentMethod: "CREDIT_CARD",
     cardNumber: "",
     cardName: "",
@@ -35,7 +34,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
     savePaymentMethod: false,
   })
 
-  // Validation state
   const [errors, setErrors] = useState({})
 
   const steps = [
@@ -51,7 +49,7 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
       [name]: type === "checkbox" ? checked : value,
     }))
 
-    // Clear error for this field if it exists
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }))
     }
@@ -65,7 +63,7 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
   }
 
   const handleQuantityChange = (value) => {
-    // Ensure quantity is between 1 and 10
+
     const newQuantity = Math.max(1, Math.min(10, value))
     setPurchaseData((prev) => ({ ...prev, quantity: newQuantity }))
   }
@@ -73,7 +71,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
   const validateStep = () => {
     try {
       if (currentStep === 0) {
-        // Validate quantity and date with Zod
         const quantityDateSchema = z.object({
           quantity: z.number().min(1, "Please select at least 1 ticket").max(10, "Maximum 10 tickets allowed"),
           visitDate: z
@@ -93,7 +90,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
           visitDate: purchaseData.visitDate,
         })
       } else if (currentStep === 1 && purchaseData.paymentMethod === "CREDIT_CARD") {
-        // Validate payment details with Zod
         const paymentSchema = z.object({
           cardNumber: z
             .string()
@@ -118,12 +114,10 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
         })
       }
 
-      // Clear errors if validation passes
       setErrors({})
       return true
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Convert Zod errors to our error format
         const newErrors = {}
         error.errors.forEach((err) => {
           newErrors[err.path[0]] = err.message
@@ -177,7 +171,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
           paymentMethod: purchaseData.paymentMethod,
         })
 
-        // Add the ticket to the user's purchased tickets
         if (addPurchasedTicket) {
           addPurchasedTicket({
             ...newTicket,
@@ -191,9 +184,8 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
       }
 
       setPurchaseComplete(true)
-      setCurrentStep(2) // Move to confirmation step
+      setCurrentStep(2) 
 
-      // Show success toast
       toast({
         variant: "success",
         title: "Purchase Successful!",
@@ -203,7 +195,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
         className: "bg-white text-gray-900 border border-gray-200 shadow-md"
       })
 
-      // Call the onPurchase callback if provided
       if (onPurchase) {
         onPurchase(tickets)
       }
@@ -220,7 +211,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
 
   const handleClose = () => {
     if (purchaseComplete) {
-      // Reset the state for next purchase
       setPurchaseData({
         quantity: 1,
         visitDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -590,7 +580,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
             </div>
           )}
 
-          {/* Display any API errors */}
           {createError && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600 text-sm flex items-center">
@@ -600,7 +589,6 @@ export function TicketPurchaseFlow({ ticket, isOpen, onClose, onPurchase }) {
             </div>
           )}
 
-          {/* Navigation Buttons */}
           {!purchaseComplete && (
             <div className="flex justify-between mt-8">
               {currentStep > 0 ? (

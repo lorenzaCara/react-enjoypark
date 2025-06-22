@@ -10,13 +10,11 @@ import { useRef, useState } from 'react';
 export default function HomePage() {
   const navigate = useNavigate()
 
-  // Provider hooks
   const { attractions, isLoading: attractionsLoading, error: attractionsError } = useAttractions()
   const { shows, isLoading: showsLoading, error: showsError } = useShows()
   const { tickets, loading: ticketsLoading, error: ticketsError } = useTickets()
   const { services, isLoading: servicesLoading, error: servicesError } = useServices()
 
-  // Filtra i dati per la homepage
   const topAttractions = attractions?.slice(0, 3) || []
   const todayShows = shows?.slice(0, 4) || []
   const topServices = services?.slice(0, 4) || []
@@ -29,7 +27,6 @@ export default function HomePage() {
     VIP: "/img/vip-ticket.jpg",
   };
 
-  // State and ref for draggable tickets
   const scrollContainerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -40,16 +37,16 @@ export default function HomePage() {
     if (scrollContainerRef.current) {
       setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
       setScrollLeft(scrollContainerRef.current.scrollLeft);
-      scrollContainerRef.current.style.cursor = 'grabbing'; // Visual feedback for dragging
+      scrollContainerRef.current.style.cursor = 'grabbing'; 
     }
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging) return; // Only drag if the mouse is pressed
-    e.preventDefault(); // Prevent text selection and other default browser behaviors
+    if (!isDragging) return; 
+    e.preventDefault(); 
     if (scrollContainerRef.current) {
       const x = e.pageX - scrollContainerRef.current.offsetLeft;
-      const walk = (x - startX) * 1.5; // Adjust scroll speed (e.g., 1.5 for a bit faster)
+      const walk = (x - startX) * 1.5; 
       scrollContainerRef.current.scrollLeft = scrollLeft - walk;
     }
   };
@@ -57,20 +54,17 @@ export default function HomePage() {
   const handleMouseUp = () => {
     setIsDragging(false);
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab'; // Reset cursor
+      scrollContainerRef.current.style.cursor = 'grab'; 
     }
   };
 
   const handleMouseLeave = () => {
-    // Important: if the mouse leaves the element while dragging, stop dragging
     setIsDragging(false);
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab'; // Reset cursor
+      scrollContainerRef.current.style.cursor = 'grab'; 
     }
   };
 
-
-  // Loading state
   if (attractionsLoading || showsLoading || ticketsLoading || servicesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -103,7 +97,6 @@ export default function HomePage() {
         >
           <div className="absolute rounded-3xl inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-600 opacity-40"></div> {/* Riduci l'opacità del gradiente se l'immagine è molto scura */}
           <div className="absolute rounded-3xl inset-0 bg-black/20"></div>
-          {/* Pattern decorativo - potresti volerli rimuovere o ridurre l'opacità se si scontrano con l'immagine */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 left-20 w-64 h-64 bg-teal-400 rounded-full blur-3xl"></div>
             <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-400 rounded-full blur-3xl"></div>
@@ -132,7 +125,6 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 ms-[-10px] animate-bounce">
           <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center items-start">
             <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse "></div>
@@ -140,7 +132,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Mission Statement */}
       <section className="py-24 px-4 lg:mx-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed font-light">
@@ -149,7 +140,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Expand Your Experience - Due card affiancate */}
       <section className="py-24 px-4 bg-white dark:bg-gray-900 mx-4 rounded-3xl lg:mx-8">
         <div className=" mx-auto">
           <div className="text-center mb-16">
@@ -159,16 +149,13 @@ export default function HomePage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 p-0 lg:p-4 md:p-4">
-            {/* Colonna di sinistra - senza margine extra */}
             <div className="flex flex-col gap-8">
               {/* Card 1 - Attrazioni */}
               <Card className="group relative overflow-hidden rounded-3xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-[40rem] cursor-pointer">
-                {/* Sfondo immagine */}
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: "url('/img/attractions.jpg')" }}
                 />
-                {/* Overlay gradiente nero trasparente per contrasto */}
                 <div className="absolute inset-0 bg-black/40"></div>
                 <CardContent className="relative z-10 h-full flex flex-col justify-between p-8 py-14 text-white text-center">
                   <div>
@@ -190,12 +177,10 @@ export default function HomePage() {
 
               {/* Card 3 - Esplorazioni */}
               <Card className="group relative overflow-hidden rounded-3xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-[40rem] cursor-pointer">
-                {/* Sfondo immagine */}
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: "url('/img/map.jpg')" }}
                 />
-                {/* Overlay gradiente nero trasparente per contrasto */}
                 <div className="absolute inset-0 bg-black/40"></div>
                 <CardContent className="relative z-10 h-full flex flex-col justify-between p-8 py-14 text-white text-center">
                   <div>
@@ -216,16 +201,13 @@ export default function HomePage() {
               </Card>
             </div>
 
-            {/* Colonna di destra - inizia più in basso */}
             <div className="flex flex-col gap-8 lg:mt-12">
               {/* Card 2 - Spettacoli */}
               <Card className="group relative overflow-hidden rounded-3xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-[40rem] cursor-pointer">
-                {/* Sfondo immagine */}
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: "url('/img/shows.jpg')" }}
                 />
-                {/* Overlay gradiente nero trasparente per contrasto */}
                 <div className="absolute inset-0 bg-black/40"></div>
                 <CardContent className="relative z-10 h-full flex flex-col justify-between p-8 py-14 text-white text-center">
                   <div>
@@ -247,12 +229,10 @@ export default function HomePage() {
 
               {/* Card 4 - Esperienze */}
               <Card className="group relative overflow-hidden rounded-3xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-[40rem] cursor-pointer">
-                {/* Sfondo immagine */}
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: "url('/img/services.jpg')" }}
                 />
-                {/* Overlay gradiente nero trasparente per contrasto */}
                 <div className="absolute inset-0 bg-black/40"></div>
 
                 <CardContent className="relative z-10 h-full flex flex-col justify-between p-8 py-14 text-white text-center">
@@ -287,7 +267,6 @@ export default function HomePage() {
             </h2>
           </div>
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-16">
-            {/* Colonna Sinistra: Orari (mostrata sotto su mobile) */}
             <div className="space-y-8">
               <Card className="bg-white rounded-3xl border-2 border-transparent shadow-none transition-all duration-500 h-[27rem] me-4">
                 <CardContent className="p-8 py-12 flex flex-col items-center justify-center h-full"> {/* Increased padding and added flex centering */}
@@ -307,7 +286,6 @@ export default function HomePage() {
               </Card>
             </div>
 
-            {/* Colonna Destra: Biglietti (mostrata sopra su mobile) */}
             <div
               className="overflow-x-auto scrollbar-hide col-span-2 px-0 cursor-grab"
               ref={scrollContainerRef}

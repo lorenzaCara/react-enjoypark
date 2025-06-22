@@ -1,7 +1,5 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
-import { Shield, ArrowLeft, Home, AlertTriangle } from "lucide-react"
+import { AlertTriangle, ArrowLeft, Home } from "lucide-react"
 import { Link } from "react-router"
 
 export default function Unauthorized() {

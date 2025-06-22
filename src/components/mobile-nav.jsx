@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 
 export function MobileNav() {
   const [activeTab, setActiveTab] = useState("")
-  const location = useLocation() // Usa useLocation per reagire ai cambi di rotta
+  const location = useLocation()
 
   useEffect(() => {
     const path = location.pathname

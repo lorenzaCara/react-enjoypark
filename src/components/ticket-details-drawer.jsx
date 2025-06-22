@@ -7,9 +7,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export function TicketDetailsDrawer({ ticket, isOpen, onClose, onPurchase }) {
   if (!ticket) return null
 
-  console.log("TicketType:", ticket.ticketType)
-
-  // Controlla se ci sono elementi inclusi
   const hasAttractions = ticket.attractions?.length > 0
   const hasShows = ticket.shows?.length > 0
   const hasServices = ticket.services?.length > 0

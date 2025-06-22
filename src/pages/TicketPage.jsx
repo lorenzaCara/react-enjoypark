@@ -112,7 +112,6 @@ export default function TicketPage() {
     }
   }
 
-  // Capture QR code image when component mounts or ticket changes
   useEffect(() => {
     if (currentTicket && qrCodeRef.current) {
       captureQRCode()
@@ -125,13 +124,11 @@ export default function TicketPage() {
 
       const qrElement = qrCodeRef.current
 
-      // If the QR element is an image, use its src directly
       if (qrElement.tagName === "IMG" && qrElement.src) {
         setQrCodeImage(qrElement.src)
         return
       }
 
-      // Otherwise, create a canvas to capture the div content
       const canvas = document.createElement("canvas")
       const width = qrElement.offsetWidth || 200
       const height = qrElement.offsetHeight || 200
@@ -140,17 +137,14 @@ export default function TicketPage() {
 
       const ctx = canvas.getContext("2d")
 
-      // Fill the background
-      ctx.fillStyle = "#F3F4F6" // bg-gray-100
+      ctx.fillStyle = "#F3F4F6" 
       ctx.fillRect(0, 0, width, height)
 
-      // Draw the QR icon (simulated with a pattern)
-      ctx.fillStyle = "#D1D5DB" // text-gray-300
+      ctx.fillStyle = "#D1D5DB"
       const iconSize = 64
       const iconX = (width - iconSize) / 2
       const iconY = (height - iconSize) / 2 - 20
 
-      // Draw a simple pattern to simulate the QR icon
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
           if ((i + j) % 2 === 0) {
@@ -159,14 +153,12 @@ export default function TicketPage() {
         }
       }
 
-      // Add the code text
-      ctx.fillStyle = "#6B7280" // text-gray-500
+      ctx.fillStyle = "#6B7280"
       ctx.font = "12px Arial"
       ctx.textAlign = "center"
       const text = currentTicket.rawCode || "QR code not available"
       ctx.fillText(text, width / 2, height - 30)
 
-      // Convert to image
       const dataUrl = canvas.toDataURL("image/png")
       setQrCodeImage(dataUrl)
     } catch (error) {
@@ -230,7 +222,6 @@ export default function TicketPage() {
 
       const qrElement = qrCodeRef.current
 
-      // If it’s an image, download directly
       if (qrElement.tagName === "IMG" && qrElement.src) {
         const link = document.createElement("a")
         link.href = qrElement.src
@@ -239,7 +230,6 @@ export default function TicketPage() {
         link.click()
         document.body.removeChild(link)
       } else {
-        // Use the captured image
         if (qrCodeImage) {
           const link = document.createElement("a")
           link.href = qrCodeImage
@@ -268,7 +258,6 @@ export default function TicketPage() {
     }
   }
 
-  // Share ticket
   const handleShareTicket = async () => {
     const shareData = {
       title: `Heptapod Park Ticket - ${currentTicket.ticketType?.name || `Ticket #${currentTicket.id}`}`,
@@ -313,15 +302,12 @@ export default function TicketPage() {
     }
   }
 
-  // Print ticket directly without opening a new window
   const handlePrintTicket = () => {
     try {
-      // Ensure the QR code image is captured
       if (!qrCodeImage) {
         captureQRCode()
       }
 
-      // Start printing
       setTimeout(() => {
         window.print()
       }, 100)
@@ -431,13 +417,9 @@ export default function TicketPage() {
     const [year, month, day] = datePart.split('-').map(Number);
     validityDate = new Date(year, month - 1, day); 
   } catch (error) {
-    console.error("Errore nella parsificazione di validFor:", currentTicket.validFor, error);
     validityDate = startOfDay(parseISO(currentTicket.validFor));
   }
 
-
-  console.log("currentTicket.validFor (original):", currentTicket.validFor);
-  console.log("validityDate (forced to local day):", validityDate); // Verifica questo valore nella console
 
   const purchaseDate = new Date(currentTicket.purchaseDate || Date.now())
   const isActive = currentTicket.status === "ACTIVE"
@@ -446,10 +428,8 @@ export default function TicketPage() {
 
   return (
     <div>
-      {/* Componente nascosto per la stampa */}
       <PrintableTicket ticket={currentTicket} qrCodeImage={qrCodeImage} />
 
-      {/* Header con effetto fisso */}
       <div className={`mx-auto p-4 ${isFixed ? "pt-24" : ""}`}>
         <div
           ref={headerRef}
@@ -461,7 +441,6 @@ export default function TicketPage() {
             isFixed ? "py-8 rounded-b-3xl" : "py-12 lg:py-20 rounded-3xl lg:mx-4"
           }`}
         >
-          {/* Back button */}
           <div className="absolute left-6 top-6">
             <Link to="/profile">
               <Button
@@ -504,12 +483,8 @@ export default function TicketPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-4 py-12 lg:mx-4">
-
-        {/* Ticket Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mx-0">
-          {/* QR Code Section */}
           <div className="bg-white rounded-3xl p-8">
             <div className="text-center">
               <h3 className="text-2xl font-light text-gray-900 mb-6">QR code</h3> 
@@ -520,7 +495,6 @@ export default function TicketPage() {
                     src={currentTicket.qrCode || "/placeholder.svg"}
                     alt="QR Code"
                     className="w-48 h-48 rounded-xl"
-                    // Removed redundant onLoad={captureQRCode}
                   />
                 ) : (
                   <div
@@ -558,7 +532,6 @@ export default function TicketPage() {
             </div>
           </div>
 
-          {/* Ticket Information */}
           <div className="bg-white rounded-3xl p-8">
             <h3 className="text-2xl font-light text-gray-900 mb-6">Ticket details</h3> 
 
@@ -650,7 +623,6 @@ export default function TicketPage() {
           </div>
         </div>
 
-        {/* Additional Information */}
         {currentTicket.notes && (
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 mt-8 max-w-6xl mx-auto transition-all hover:border-teal-200">
             <h3 className="text-2xl font-light text-gray-900 mb-4">Notes</h3> 
@@ -658,7 +630,6 @@ export default function TicketPage() {
           </div>
         )}
 
-        {/* Actions Footer */}
         <div className="flex flex-wrap gap-4 justify-center mt-12">
           {isActive && (
             <Button
@@ -677,15 +648,14 @@ export default function TicketPage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <DeleteTicketDialog
         isOpen={isDeleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        title="Cancel Reservation" // Localized
+        title="Cancel Reservation" 
         description="Are you sure you want to cancel this reservation? The ticket will be permanently deleted and this action cannot be undone." // Localized
-        confirmText="Cancel Reservation" // Localized
-        cancelText="Keep Ticket" // Localized
+        confirmText="Cancel Reservation" 
+        cancelText="Keep Ticket" 
         isLoading={isDeleting}
         variant="destructive"
       />

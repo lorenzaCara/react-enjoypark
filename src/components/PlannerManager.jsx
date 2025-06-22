@@ -20,7 +20,7 @@ import {
   Trash2
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { Link } from "react-router"; // Usa react-router-dom se stai usando Link per la navigazione
+import { Link } from "react-router"; 
 import DeletePlannerDialog from "./Delete-planner-dialog"
 import ManagePlannerDialog from "./Manage-planner-dialog"
 import { useServices } from "@/contexts/ServicesProvider"
@@ -34,11 +34,11 @@ export default function PlannerManager() {
   const { toast } = useToast()
 
   const [selectedTicket, setSelectedTicket] = useState(null)
-  const [plannerToManage, setPlannerToManage] = useState(null) // Useremo questo per tenere il planner da editare o null per la creazione
+  const [plannerToManage, setPlannerToManage] = useState(null) 
   const [isSaving, setIsSaving] = useState(false)
   const [isFixed, setIsFixed] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showManagePlannerDialog, setShowManagePlannerDialog] = useState(false) // Nuovo stato per controllare il dialog universale
+  const [showManagePlannerDialog, setShowManagePlannerDialog] = useState(false) 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -101,17 +101,14 @@ export default function PlannerManager() {
     }
   }, [])
 
-  // Funzione per gestire le date in modo sicuro
+  // Funzione per gestire le date
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null
     return new Date(dateStr).toISOString().split("T")[0]
   }
 
-  // Filtra i planner per il biglietto selezionato
   const ticketPlanners = selectedTicket ? planners.filter((p) => p.ticketId === selectedTicket.id) : []
 
-  // Filtra gli spettacoli disponibili per la data del biglietto
-  // Queste funzioni ora riceveranno il ticket come argomento dal dialog
   const getAvailableShows = (ticket) => {
     if (!ticket || !shows) return []
     const plannerDate = toDateOnly(ticket.validFor)
@@ -150,7 +147,7 @@ export default function PlannerManager() {
     setShowManagePlannerDialog(false)
   }
 
-  // Funzione unificata per salvare o aggiornare un planner
+  // Funzione per salvare o aggiornare un planner
   const handleSaveOrUpdatePlanner = async () => {
     if (!formData.title.trim()) {
       toast({
@@ -164,13 +161,13 @@ export default function PlannerManager() {
     setIsSaving(true)
 
     try {
-      const isEditMode = !!plannerToManage?.id; // Controlla se siamo in modalità modifica
+      const isEditMode = !!plannerToManage?.id;
 
       const plannerData = {
-        ticketId: selectedTicket.id, // Il ticket è sempre quello selezionato
+        ticketId: selectedTicket.id,
         title: formData.title,
         description: formData.description,
-        date: toDateOnly(selectedTicket.validFor), // La data è sempre quella del ticket
+        date: toDateOnly(selectedTicket.validFor),
         attractionIds: formData.attractionIds,
         serviceIds: formData.serviceIds,
         showIds: formData.showIds,
@@ -193,7 +190,7 @@ export default function PlannerManager() {
           className: "bg-white text-gray-900 border border-white"
         })
       }
-      resetFormAndDialogState() // Chiudi il dialog e resetta il form
+      resetFormAndDialogState()
     } catch (error) {
       console.error("Error saving/updating planner:", error);
       toast({
@@ -226,7 +223,6 @@ export default function PlannerManager() {
     }
   }
 
-  // Apre il dialog per la creazione di un nuovo planner
   const openCreatePlannerDialog = () => {
     if (!selectedTicket) {
       toast({
@@ -236,8 +232,8 @@ export default function PlannerManager() {
       });
       return;
     }
-    setPlannerToManage(null); // Indicates we are creating a new planner
-    setFormData({ // Initializes the form for creation
+    setPlannerToManage(null);
+    setFormData({
       title: `My planner for ${new Date(selectedTicket.validFor).toLocaleDateString('en-US')}`,
       description: "",
       attractionIds: [],
@@ -509,7 +505,7 @@ export default function PlannerManager() {
           </div>
         )}
 
-        {/* Enhanced Empty State */}
+        {/* Stato vuoto */}
         {!selectedTicket && (
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 text-center mx-4 lg:mx-8">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -522,28 +518,27 @@ export default function PlannerManager() {
           </div>
         )}
 
-        {/* ManagePlannerDialog riutilizzato per creazione e modifica */}
+        {/* ManagePlannerDialog per creazione e modifica */}
         <ManagePlannerDialog
           open={showManagePlannerDialog}
-          onOpenChange={setShowManagePlannerDialog} // Permette al dialog di gestire la chiusura
-          initialData={plannerToManage} // Sarà null per la creazione, o l'oggetto planner per la modifica
+          onOpenChange={setShowManagePlannerDialog} 
+          initialData={plannerToManage} 
           formData={formData}
           setFormData={setFormData}
           isSaving={isSaving}
-          onSave={handleSaveOrUpdatePlanner} // La funzione unificata
-          onCancel={resetFormAndDialogState} // Resetta e chiudi il dialog
+          onSave={handleSaveOrUpdatePlanner} 
+          onCancel={resetFormAndDialogState} 
           handleItemToggle={handleItemToggle}
           getAvailableShows={getAvailableShows}
           getAvailableAttractions={getAvailableAttractions}
           getAvailableServices={getAvailableServices}
-          plannerTicket={selectedTicket} // Passa il ticket attualmente selezionato
+          plannerTicket={selectedTicket} 
         />
 
-        {/* Dialog per Conferma Eliminazione */}
         <DeletePlannerDialog
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
-          selectedPlanner={plannerToManage} // Usa plannerToManage per la conferma eliminazione
+          selectedPlanner={plannerToManage} 
           onDelete={handleDeletePlanner}
           onCancel={() => {
             setShowDeleteDialog(false)

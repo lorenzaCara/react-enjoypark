@@ -27,8 +27,6 @@ export default function ShowsPage() {
       }
     };
 
-
-  // Animazione per nuove card generali
   useEffect(() => {
     if (!isLoading && shows.length > 0) {
       gsap.fromTo(
@@ -88,10 +86,8 @@ export default function ShowsPage() {
     }
   }
 
-  // Funzione per estrarre solo la data in formato YYYY-MM-DD in modo sicuro
   const toDateOnly = (dateStr) => new Date(dateStr).toISOString().split("T")[0]
 
-  // Modifica la funzione getValidTicketsForShow per restituire un array di biglietti validi
   const getValidTicketsForShow = (show) => {
     if (!show.date) return []
 
@@ -109,13 +105,11 @@ export default function ShowsPage() {
     )
   }
 
-  // Gestisce il click su uno show
   const handleShowClick = (show) => {
     setSelectedShow(show)
     setIsDrawerOpen(true)
   }
 
-  // Gestisce la chiusura del drawer
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false)
     setSelectedShow(null)
@@ -246,7 +240,6 @@ export default function ShowsPage() {
         })}
       </div>
 
-      {/* Show Details Drawer */}
       <ShowsPlannerDrawer
         selectedShow={selectedShow}
         isDrawerOpen={isDrawerOpen}

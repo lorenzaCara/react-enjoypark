@@ -32,10 +32,10 @@ export default function DeleteNotificationDialog({ isOpen, onClose, onConfirm, n
           )}
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
           <Button variant="outline" onClick={onClose} className="rounded-full px-12 py-6 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-300">
-            Annulla
+            Cancel
           </Button>
           <Button variant='outline' onClick={onConfirm} className="bg-red-600 hover:bg-red-700 text-white rounded-full px-12 py-6 transition-all duration-300 hover:text-white">
-            Elimina
+            Delete
           </Button>
         </div>
         </div>

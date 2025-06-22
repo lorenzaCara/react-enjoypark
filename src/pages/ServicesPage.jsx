@@ -20,7 +20,6 @@ const ServicesPage = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const headerRef = useRef(null)
 
-  // Filtra solo i biglietti attivi
   const activeTickets = purchasedTickets?.filter((t) => t.status === "ACTIVE" || t.status === "USED") || []
 
   useEffect(() => {

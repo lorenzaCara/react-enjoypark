@@ -32,7 +32,7 @@ export default function ValidateTicket() {
 
   const navigate = useNavigate();
   const { user } = useUser();
-  const location = useLocation(); // Aggiunto: Ottiene l'oggetto location corrente
+  const location = useLocation();
 
   const {
     currentTicket,
@@ -54,10 +54,7 @@ export default function ValidateTicket() {
   const successRef = useRef(null);
 
   useEffect(() => {
-    // Check if user is logged in and has STAFF role
     if (!user) {
-      // MODIFICA QUI: Salva l'intera location anziché solo il rawCode
-      // Questo memorizza il percorso e i parametri di ricerca come "/validate-ticket?code=XYZ"
       localStorage.setItem("redirectAfterLogin", JSON.stringify(location));
       navigate("/login");
       return;
@@ -74,7 +71,7 @@ export default function ValidateTicket() {
       setIsLoading(true);
       try {
         if (rawCode) {
-          await fetchTicketByCode(rawCode); // Animate card entrance after loading
+          await fetchTicketByCode(rawCode); 
           setTimeout(() => {
             setShowDetails(true);
             if (cardRef.current) {
@@ -102,7 +99,7 @@ export default function ValidateTicket() {
       }
     };
 
-    fetchTicket(); // Animate header entrance
+    fetchTicket();
 
     if (headerRef.current) {
       gsap.fromTo(
@@ -124,7 +121,6 @@ export default function ValidateTicket() {
       setSuccess("Ticket successfully validated!");
       setLocalError("");
 
-      // Animate success message
       if (successRef.current) {
         gsap.fromTo(
           successRef.current,
@@ -133,7 +129,6 @@ export default function ValidateTicket() {
         );
       }
 
-      // Confetti effect simulation
       setTimeout(() => {
         if (successRef.current) {
           gsap.to(successRef.current, {
@@ -217,18 +212,16 @@ export default function ValidateTicket() {
   };
 
   if (!user || user.role !== "STAFF") {
-    return null; // Will redirect in useEffect
+    return null; 
   }
 
   return (
     <div className="py-4 sm:py-8 lg:mx-4">
       <div className="mx-auto px-3 sm:px-4">
-        {/* Mobile-Optimized Header */}
         <div
           ref={headerRef}
           className="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-600 text-white rounded-3xl p-4 sm:p-8 mb-4 sm:mb-8 relative overflow-hidden"
         >
-          {/* Background Pattern - Hidden on very small screens */}
           <div className="absolute inset-0 opacity-10 hidden sm:block">
             <div className="absolute top-4 right-4 w-32 h-32 border border-white/20 rounded-full"></div>
             <div className="absolute bottom-4 left-4 w-24 h-24 border border-white/20 rounded-full"></div>
@@ -249,7 +242,6 @@ export default function ValidateTicket() {
               </div>
             </div>
 
-            {/* Mobile Staff Badge */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl px-3 py-2 sm:px-4">
               <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-sm truncate">
@@ -259,7 +251,6 @@ export default function ValidateTicket() {
           </div>
         </div>
 
-        {/* Mobile-Optimized Main Content Card */}
         <div
           ref={cardRef}
           className="max-w-7xl mx-auto bg-white rounded-3xl  overflow-hidden backdrop-blur-sm"
@@ -267,7 +258,6 @@ export default function ValidateTicket() {
         >
           {isLoading ? (
             <div className="p-4 sm:p-8">
-              {/* Mobile Loading State */}
               <div className="text-center py-8 sm:py-12">
                 <div className="relative">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-teal-200 rounded-full mx-auto mb-4 sm:mb-6"></div>
@@ -281,7 +271,6 @@ export default function ValidateTicket() {
                 </p>
               </div>
 
-              {/* Mobile Skeleton Loading */}
               <div className="space-y-3 sm:space-y-4">
                 {[1, 2, 3].map((i) => (
                   <div
@@ -335,7 +324,6 @@ export default function ValidateTicket() {
             </div>
           ) : (
             <div className="p-4 sm:p-8">
-              {/* Mobile-Optimized Ticket Status Header */}
               <div className="text-center mb-6 sm:mb-8">
                 <div
                   className={`inline-flex items-center gap-2 sm:gap-3 ${
@@ -363,7 +351,6 @@ export default function ValidateTicket() {
                 </div>
               </div>
 
-              {/* Mobile-Optimized Ticket Details */}
               <div
                 ref={detailsRef}
                 className="bg-gray-200/30 rounded-3xl p-4 sm:p-6 mb-4 sm:mb-6 "
@@ -383,7 +370,6 @@ export default function ValidateTicket() {
                     </div>
                   </div>
 
-                  {/* Mobile Expand/Collapse Button */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -398,9 +384,7 @@ export default function ValidateTicket() {
                   </Button>
                 </div>
 
-                {/* Always show QR code and ticket type on mobile */}
                 <div className="space-y-3 sm:space-y-4">
-                  {/* QR Code - Always visible */}
                   <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/30 rounded-3xl flex items-center justify-center">
                       <QrCode className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />
@@ -415,7 +399,6 @@ export default function ValidateTicket() {
                     </div>
                   </div>
 
-                  {/* Ticket Type - Always visible */}
                   {currentTicket.ticketType && (
                     <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center">
@@ -432,13 +415,12 @@ export default function ValidateTicket() {
                     </div>
                   )}
 
-                  {/* Collapsible details on mobile, always visible on desktop */}
                   <div
                     className={`space-y-3 sm:space-y-4 ${
                       expandedDetails ? "block" : "hidden"
                     } sm:block`}
                   >
-                    {/* Valid Until */}
+
                     {currentTicket.validFor && (
                       <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center">
@@ -459,7 +441,6 @@ export default function ValidateTicket() {
                       </div>
                     )}
 
-                    {/* Owner */}
                     {currentTicket.user && (
                       <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center ">
@@ -476,7 +457,6 @@ export default function ValidateTicket() {
                       </div>
                     )}
 
-                    {/* Purchase Date */}
                     {currentTicket.purchaseDate && (
                       <div className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-3xl border border-white transition-all duration-300">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center ">
@@ -500,7 +480,6 @@ export default function ValidateTicket() {
                 </div>
               </div>
 
-              {/* Success Message */}
               {success && (
                 <div
                   ref={successRef}
@@ -523,7 +502,6 @@ export default function ValidateTicket() {
                 </div>
               )}
 
-              {/* Error Message */}
               {localError && !currentTicketError && (
                 <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-3xl p-4 sm:p-6 mb-4 sm:mb-6 ">
                   <div className="flex items-center gap-3 sm:gap-4">
@@ -544,7 +522,6 @@ export default function ValidateTicket() {
             </div>
           )}
 
-          {/* Mobile-Optimized Actions */}
           <div className="p-4 sm:p-6 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-teal-50/30">
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
               <Link to={"/"}>

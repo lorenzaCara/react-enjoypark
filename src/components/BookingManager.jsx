@@ -24,8 +24,6 @@ import DeleteBookingDialog from "./DeleteBookingDialog"
 import ServiceSelectorDialog from "./ServiceSelectorDialog"
 import ServiceBookingDialog from "./ServiceBookingDialog"
 
-// Import external dialog components
-
 export default function BookingManager() {
   const { user } = useUser()
   const { toast } = useToast()
@@ -57,7 +55,6 @@ export default function BookingManager() {
   const headerRef = useRef(null)
   const statsRef = useRef(null)
 
-  // Scroll effect for fixed header
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -108,23 +105,22 @@ export default function BookingManager() {
     }
   }, [])
 
-  // Filter services to show only bookable ones (Restaurant, Café, Rental)
+  // Filtra i servizi prenotabili
   const bookableServiceTypes = ["Restaurant", "Café", "Rental"]
   const bookableServices = services.filter((service) => bookableServiceTypes.includes(service.type))
 
-  // Filter current user's bookings
+  // Filtra le prenotazioni user
   const userBookings = serviceBookings.filter((booking) => {
     return String(booking.userId) === String(user?.id)
   })
 
-  // Sort bookings by date (most recent first)
+  // Ordina prenotazioni per data
   const sortedBookings = [...userBookings].sort((a, b) => {
     const dateA = new Date(a.bookingTime || a.date || a.createdAt)
     const dateB = new Date(b.bookingTime || b.date || b.createdAt)
     return dateB - dateA
   })
 
-  // Dialog handlers
   const handleServiceBooking = async () => {
     if (!selectedService || !bookingData.date || !bookingData.time) {
       toast({

@@ -26,7 +26,6 @@ import {
 import { Link } from "react-router"
 import { z } from "zod"
 
-// Schema di validazione Zod per il profilo
 const profileSchema = z.object({
   firstName: z
     .string()
@@ -53,7 +52,6 @@ const profileSchema = z.object({
     ),
 })
 
-// Schema di validazione Zod per la password
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),
@@ -405,7 +403,6 @@ export default function ProfileSettings() {
 
   return (
     <div>
-      {/* Header con effetto fisso */}
       <div className={`mx-auto p-4 ${isFixed ? "pt-24" : ""}`}>
         <div
           ref={headerRef}
@@ -417,7 +414,6 @@ export default function ProfileSettings() {
             isFixed ? "py-8 rounded-b-3xl" : "py-12 lg:py-20 rounded-3xl lg:mx-4"
           }`}
         >
-          {/* Back button */}
           <div className="absolute left-6 top-6">
             <Link to="/profile">
               <Button variant="ghost" className="text-white hover:bg-white/10 rounded-2xl border border-white/20 hover:text-white">
@@ -447,9 +443,7 @@ export default function ProfileSettings() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-4 py-12">
-        {/* Success Messages */}
         {success && (
           <div className="max-w-6xl mx-auto mb-8">
             <div className="bg-teal-50 border border-teal-200 text-teal-700 px-6 py-4 rounded-3xl flex items-center gap-3">
@@ -459,9 +453,7 @@ export default function ProfileSettings() {
           </div>
         )}
 
-        {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mx-auto lg:px-4">
-          {/* Profile Photo & Info Section */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 transition-all">
             <div className="text-center">
               <h3 className="text-2xl font-light text-gray-900 mb-6">Profile picture</h3>
@@ -508,7 +500,6 @@ export default function ProfileSettings() {
             </div>
           </div>
 
-          {/* Personal Information Section */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8 transition-all">
             <h3 className="text-2xl font-light text-gray-900 mb-6">Peronal informations</h3>
 

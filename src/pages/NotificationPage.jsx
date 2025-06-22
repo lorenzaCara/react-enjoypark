@@ -15,7 +15,7 @@ const NotificationPage = () => {
   const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, notificationId: null, message: "" })
   const [isLoading, setIsLoading] = useState(true)
   const [isFixed, setIsFixed] = useState(false)
-  const [filter, setFilter] = useState("all") // all, unread, read
+  const [filter, setFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
   const headerRef = useRef(null)
@@ -27,7 +27,6 @@ const NotificationPage = () => {
     return () => clearTimeout(timer)
   }, [])
 
-  // Scroll effect for fixed header
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -58,7 +57,6 @@ const NotificationPage = () => {
   const handleNotificationClick = async (notification) => {
     setSelectedNotification(notification)
 
-    // Mark as read if not already read
     if (!notification.read) {
       await markAsRead(notification.id)
     }
@@ -100,7 +98,6 @@ const NotificationPage = () => {
   const unreadCount = notifications?.filter((n) => !n.read).length || 0
   const totalCount = notifications?.length || 0
 
-  // Filter notifications based on current filter and search term
   const filteredNotifications =
     notifications?.filter((notification) => {
       const matchesFilter =
@@ -182,13 +179,10 @@ const NotificationPage = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-4 py-12 lg:px-8">
         <div className="mx-auto">
-          {/* Filters and Search */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-6 mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-              {/* Filter Tabs */}
               <div className="flex gap-2">
                 <Button
                   variant={filter === "all" ? "default" : "outline"}
@@ -228,7 +222,6 @@ const NotificationPage = () => {
                 </Button>
               </div>
 
-              {/* Search */}
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -250,11 +243,10 @@ const NotificationPage = () => {
             </div>
           </div>
 
-          {/* Notifications List */}
           {filteredNotifications.length === 0 ? (
             <div className="bg-white rounded-3xl border-2 border-gray-100 p-12 text-center">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Bell className="w-8 w-8 text-gray-400" />
+                <Bell className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-2xl font-light text-gray-900 mb-2">
                 {searchTerm ? "No matching notifications" : "No notifications"}
@@ -288,7 +280,6 @@ const NotificationPage = () => {
                         )}
                       </div>
 
-                      {/* Notification Content */}
                       <div className="flex-1 min-w-0">
                         <p className={`mb-2 ${!notification.read ? "text-gray-900 font-medium" : "text-gray-700"}`}>
                           {notification.message}
@@ -302,7 +293,6 @@ const NotificationPage = () => {
                         </div>
                       </div>
 
-                      {/* Actions */}
                       <div className="flex items-center gap-3">
                         <Badge
                           className={`${
@@ -335,7 +325,6 @@ const NotificationPage = () => {
         </div>
       </div>
 
-      {/* Notification Detail Dialog */}
       <NotificationDetailDialog
         notification={selectedNotification}
         isOpen={!!selectedNotification}
@@ -343,7 +332,6 @@ const NotificationPage = () => {
         onDelete={handleDeleteFromDetail}
       />
 
-      {/* Delete Confirmation Dialog */}
       <DeleteNotificationDialog
         isOpen={deleteDialog.isOpen}
         onClose={closeDeleteDialog}

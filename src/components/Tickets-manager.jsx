@@ -16,21 +16,19 @@ import { parseISO } from "date-fns" // Import parseISO
 export default function TicketsManager() {
   const { user } = useUser()
   const { toast } = useToast()
-  // We'll rename currentTicket to ticketToDelete to avoid confusion with the single ticket currently in view
   const { purchasedTickets, loading: ticketsLoading, deleteTicket } = useTickets()
   const { attractions } = useAttractions()
   const { shows } = useShows()
 
   const [isFixed, setIsFixed] = useState(false)
   const [showTicketDetail, setShowTicketDetail] = useState(false)
-  const [selectedTicket, setSelectedTicket] = useState(null) // This is for the TicketDetailDialog
-  const [activeFilter, setActiveFilter] = useState("all") // all, ACTIVE, USED, EXPIRED
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [activeFilter, setActiveFilter] = useState("all") 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [ticketToDelete, setTicketToDelete] = useState(null) // New state to hold the ticket object for deletion
+  const [ticketToDelete, setTicketToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const navigate = useNavigate()
 
-  // Aggiungi questi stati per la paginazione
   const TICKETS_PER_PAGE = 6
   const [visibleTicketsCount, setVisibleTicketsCount] = useState(TICKETS_PER_PAGE)
   const [loadingMoreTickets, setLoadingMoreTickets] = useState(false)
@@ -39,7 +37,6 @@ export default function TicketsManager() {
   const headerRef = useRef(null)
   const statsRef = useRef(null)
 
-  // Scroll effect for fixed header
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -80,7 +77,6 @@ export default function TicketsManager() {
   }
 
   useEffect(() => {
-    // Animate entrance
     if (statsRef.current) {
       gsap.fromTo(
         statsRef.current.children,
@@ -90,7 +86,6 @@ export default function TicketsManager() {
     }
   }, [])
 
-  // Aggiungi questo useEffect per animare i nuovi ticket caricati
   useEffect(() => {
     if (newTicketsRef.current.length > 0 && !loadingMoreTickets) {
       gsap.fromTo(
@@ -112,12 +107,10 @@ export default function TicketsManager() {
     }
   }, [visibleTicketsCount, loadingMoreTickets])
 
-  // Filter tickets by status
   const activeTickets = purchasedTickets.filter((ticket) => ticket.status === "ACTIVE")
   const usedTickets = purchasedTickets.filter((ticket) => ticket.status === "USED")
   const expiredTickets = purchasedTickets.filter((ticket) => ticket.status === "EXPIRED")
 
-  // Get filtered tickets based on active filter
   const getFilteredTickets = () => {
     switch (activeFilter) {
       case "ACTIVE":
@@ -131,15 +124,12 @@ export default function TicketsManager() {
     }
   }
 
-  // Sort tickets by date (most recent first)
   const sortedTickets = [...getFilteredTickets()].sort((a, b) => {
-    // Use parseISO and compare UTC times for consistent sorting
     const dateA = parseISO(a.validFor || a.purchaseDate).getTime();
     const dateB = parseISO(b.validFor || b.purchaseDate).getTime();
     return dateB - dateA
   })
 
-  // Aggiungi questa funzione per caricare più ticket
   const loadMoreTickets = () => {
     setLoadingMoreTickets(true)
 
@@ -149,23 +139,20 @@ export default function TicketsManager() {
     }, 500)
   }
 
-  // Handle filter change
   const handleFilterChange = (filter) => {
     setActiveFilter(filter)
-    // Reset visible count quando cambia il filtro
     setVisibleTicketsCount(TICKETS_PER_PAGE)
   }
 
-  // Utility functions
+
   const formatDate = (dateString) => {
     if (!dateString) return "Date not specified"
 
     try {
-      const utcDate = parseISO(dateString); // Returns a Date object representing the UTC time
+      const utcDate = parseISO(dateString); 
       if (isNaN(utcDate.getTime())) {
         return "Invalid Date";
       }
-      // Extract UTC components to avoid local timezone issues
       const year = utcDate.getUTCFullYear();
       const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0');
       const day = utcDate.getUTCDate().toString().padStart(2, '0');
@@ -212,10 +199,9 @@ export default function TicketsManager() {
     }
   }
 
-  // --- DELETE LOGIC CHANGES START HERE ---
   const handleDeleteClick = (ticket) => {
-    setTicketToDelete(ticket) // Set the specific ticket to be deleted
-    setIsDeleteDialogOpen(true) // Open the dialog
+    setTicketToDelete(ticket)
+    setIsDeleteDialogOpen(true) 
   }
 
   const handleDeleteConfirm = async () => {
@@ -227,16 +213,15 @@ export default function TicketsManager() {
     setIsDeleting(true)
 
     try {
-      await deleteTicket(ticketToDelete.id) // Use ticketToDelete.id for deletion
+      await deleteTicket(ticketToDelete.id) 
       toast({
         variant: "success",
         title: "Ticket deleted",
         description: "The ticket was successfully deleted.",
         className: "bg-white text-gray-900 border border-white"
       })
-      setIsDeleteDialogOpen(false) // Close the dialog
-      setTicketToDelete(null) // Clear the ticketToDelete state
-      // No need to navigate, the UI will re-render with updated purchasedTickets
+      setIsDeleteDialogOpen(false)
+      setTicketToDelete(null) 
     } catch (err) {
       console.error("Error while deleting the ticket:", err)
       toast({
@@ -250,10 +235,9 @@ export default function TicketsManager() {
   }
 
   const handleDeleteCancel = () => {
-    setIsDeleteDialogOpen(false) // Close the dialog
-    setTicketToDelete(null) // Clear the ticketToDelete state
+    setIsDeleteDialogOpen(false) 
+    setTicketToDelete(null) 
   }
-  // --- DELETE LOGIC CHANGES END HERE ---
 
   if (ticketsLoading) {
     return (
@@ -280,7 +264,6 @@ export default function TicketsManager() {
             isFixed ? "py-8 rounded-b-3xl" : "py-12 lg:py-20 rounded-3xl lg:mx-4"
           }`}
         >
-          {/* Back button */}
           <div className="absolute left-6 top-6">
             <Link to="/profile">
               <Button
@@ -315,9 +298,8 @@ export default function TicketsManager() {
 
       {/* Content */}
       <div className="lg:px-4 md:px-4 py-12 ">
-        {/* Enhanced Quick Stats - Clickable Cards */}
+
         <div className="flex md:grid md:grid-cols-3 gap-8 overflow-x-auto pb-2 mb-8 mx-auto ms-4 lg:mx-4 md:ms-0">
-          {/* Active Tickets Card */}
           <div
             onClick={() => handleFilterChange("ACTIVE")}
             className={`min-w-[350px] lg:min-w-0 md:min-w-0 flex-shrink-0 bg-white rounded-3xl border-2 border-white p-6 text-left transition-all duration-300 cursor-pointer ${
@@ -334,7 +316,6 @@ export default function TicketsManager() {
             <div className="text-sm text-gray-500 mt-1">Ready to use</div>
           </div>
 
-          {/* Used Tickets Card */}
           <div
             onClick={() => handleFilterChange("USED")}
             className={`min-w-[350px] lg:min-w-0 md:min-w-0 flex-shrink-0 bg-white rounded-3xl border-2 border-white p-6 text-left transition-all duration-300 cursor-pointer ${
@@ -351,7 +332,6 @@ export default function TicketsManager() {
             <div className="text-sm text-gray-500 mt-1">Past visits</div>
           </div>
 
-          {/* Expired Tickets Card */}
           <div
             onClick={() => handleFilterChange("EXPIRED")}
             className={`min-w-[350px] lg:min-w-0 md:min-w-0 flex-shrink-0 bg-white rounded-3xl border-2 border-white p-6 text-left transition-all duration-300 cursor-pointer ${
@@ -369,7 +349,6 @@ export default function TicketsManager() {
           </div>
         </div>
 
-        {/* Filter Header */}
         <div className="flex items-center justify-between mb-6 mx-4 lg:mx-4 md:mx-0"> 
             <div className="flex items-center gap-4">
                 <h2 className="text-3xl font-light text-gray-900">{getFilterTitle()}</h2>
@@ -395,7 +374,6 @@ export default function TicketsManager() {
             </div>
         </div>
 
-        {/* Tickets List */}
         {sortedTickets.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 text-center lg:mx-4 md:mx-0 mx-4 shadow:none">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -515,7 +493,6 @@ export default function TicketsManager() {
               )
             })}
 
-            {/* Load More Button */}
             {visibleTicketsCount < sortedTickets.length && (
               <div className="col-span-1 md:col-span-2 flex justify-center py-6">
                 <Button
@@ -538,7 +515,6 @@ export default function TicketsManager() {
               </div>
             )}
 
-            {/* Messaggio quando tutti i ticket sono caricati */}
             {visibleTicketsCount >= sortedTickets.length && visibleTicketsCount > TICKETS_PER_PAGE && (
               <div className="col-span-1 md:col-span-2 text-center py-4">
                 <p className="text-gray-500">All tickets have been loaded</p>
@@ -547,12 +523,11 @@ export default function TicketsManager() {
           </div>
         )}
 
-        {/* External Dialog Components */}
         <TicketDetailDialog
           isOpen={showTicketDetail}
           onClose={() => setShowTicketDetail(false)}
           ticket={selectedTicket}
-          formatDate={formatDate} // Pass formatDate to the dialog if it needs to format dates
+          formatDate={formatDate} 
           getTicketStatusColor={getTicketStatusColor}
         />
 

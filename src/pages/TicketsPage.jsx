@@ -196,7 +196,6 @@ export default function TicketsPage() {
         ))}
       </div>
 
-      {/* Ticket Details Drawer */}
       <TicketDetailsDrawer
         ticket={selectedTicket}
         isOpen={isDrawerOpen}
@@ -204,7 +203,6 @@ export default function TicketsPage() {
         onPurchase={handleBuyTicket}
       />
 
-      {/* Ticket Purchase Flow */}
       <TicketPurchaseFlow
         ticket={selectedTicket}
         isOpen={isPurchaseFlowOpen}

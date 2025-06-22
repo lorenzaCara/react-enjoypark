@@ -9,11 +9,7 @@ import HeptapodAll from "@/assets/HeptapodAll"
 
 export function ForgotPasswordForm({ className, ...props }) {
   const { requestPasswordRecovery } = useUser()
-
-  // Form state
   const [email, setEmail] = useState("")
-
-  // UI state
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -29,11 +25,11 @@ export function ForgotPasswordForm({ className, ...props }) {
 
       if (res.success) {
         setMessage(res.message)
-        // Store the email in sessionStorage to use it in the recovery page
+        // Salva email e richiesta in sessione
         sessionStorage.setItem("recoveryEmail", email)
         sessionStorage.setItem("recoveryRequested", "true")
 
-        // Redirect to recovery page after 2 seconds
+        // Redirect dopo 2 sec
         setTimeout(() => {
           window.location.href = "/recovery"
         }, 2000)

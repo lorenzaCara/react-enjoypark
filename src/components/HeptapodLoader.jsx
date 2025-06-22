@@ -13,7 +13,6 @@ export default function HeptapodLoader({ onComplete }) {
   const glowRef = useRef(null)
 
   useEffect(() => {
-    // Set initial states immediately to avoid flash
     gsap.set(loaderRef.current, {
       opacity: 1,
       scale: 1,
@@ -63,7 +62,7 @@ export default function HeptapodLoader({ onComplete }) {
       },
     })
 
-    // Background smooth entrance
+    // Background entrata smooth
     tl.to(
       backgroundRef.current,
       {
@@ -74,7 +73,7 @@ export default function HeptapodLoader({ onComplete }) {
       0,
     )
 
-    // Glow effect smooth entrance
+    // effetto glow
     tl.to(
       glowRef.current,
       {

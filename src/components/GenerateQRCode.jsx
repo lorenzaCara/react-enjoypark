@@ -1,4 +1,4 @@
-// Utility function to generate QR code as base64 image
+// Funzione per creare QR code in PNG
 export const generateQRCode = (ticketData, size = 200) => {
     const canvas = document.createElement("canvas")
     const ctx = canvas.getContext("2d")
@@ -7,18 +7,17 @@ export const generateQRCode = (ticketData, size = 200) => {
     canvas.width = size
     canvas.height = size
   
-    // Fill white background
+    // bg bianco
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, size, size)
   
-    // Generate QR pattern
+    // Pattern del codice
     const qrData = ticketData.qrCode || `TICKET-${ticketData.id}`
     const cellSize = Math.floor(size / 50)
     const margin = cellSize * 5
     const qrSize = size - margin * 2
     const cells = Math.floor(qrSize / cellSize)
   
-    // Create pattern from QR data
     ctx.fillStyle = "#000000"
     for (let i = 0; i < cells; i++) {
       for (let j = 0; j < cells; j++) {
@@ -31,7 +30,6 @@ export const generateQRCode = (ticketData, size = 200) => {
       }
     }
   
-    // Add corner squares (typical QR code markers)
     const cornerSize = cellSize * 7
     const corners = [
       { x: margin, y: margin },
@@ -40,12 +38,9 @@ export const generateQRCode = (ticketData, size = 200) => {
     ]
   
     corners.forEach((corner) => {
-      // Outer square
       ctx.fillRect(corner.x, corner.y, cornerSize, cornerSize)
-      // Inner white square
       ctx.fillStyle = "#ffffff"
       ctx.fillRect(corner.x + cellSize, corner.y + cellSize, cornerSize - cellSize * 2, cornerSize - cellSize * 2)
-      // Inner black square
       ctx.fillStyle = "#000000"
       ctx.fillRect(corner.x + cellSize * 2, corner.y + cellSize * 2, cornerSize - cellSize * 4, cornerSize - cellSize * 4)
     })

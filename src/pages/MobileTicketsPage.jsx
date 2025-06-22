@@ -1,18 +1,16 @@
+import { Button } from "@/components/ui/button"
 import { useTickets } from "@/contexts/TicketsProvider"
-import { useEffect, useRef, useState } from "react"
-import { Link } from "react-router"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
-import { ArrowLeft, Calendar, Clock, QrCode, Tag, AlertCircle } from "lucide-react"
-import gsap from "gsap"
-import { Button } from "@/components/ui/button"
+import { AlertCircle, Calendar, Clock, QrCode, Tag } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
 
 export default function MobileTicketsPage() {
   const { purchasedTickets, loading, error: ticketsError } = useTickets()
   const [activeTickets, setActiveTickets] = useState([])
 
   useEffect(() => {
-    // Filter only active tickets
     const active = purchasedTickets.filter((ticket) => ticket.status === "ACTIVE")
     setActiveTickets(active)
   }, [purchasedTickets])

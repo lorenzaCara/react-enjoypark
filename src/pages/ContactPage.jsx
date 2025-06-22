@@ -1,33 +1,31 @@
-import { useEffect, useRef, useState } from "react"
+import GoogleMapComponent from "@/components/Api-map"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useForm } from "react-hook-form"
+import { useToast } from "@/hooks/use-toast"
+import { contactFaqs } from "@/lib/data/faqs"
+import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import gsap from "gsap"
 import {
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  Send,
-  MessageSquare,
+  AlertCircle,
   ChevronDown,
   ChevronUp,
+  Clock,
   Facebook,
-  Twitter,
   Instagram,
-  Linkedin,
-  AlertCircle,
-  Youtube,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Send,
+  Twitter,
+  Youtube
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { contactFaqs } from "@/lib/data/faqs"
-import { useToast } from "@/hooks/use-toast"
-import GoogleMapComponent from "@/components/Api-map"
+import { useEffect, useRef, useState } from "react"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
 
-// Define the form validation schema with Zod
 const contactFormSchema = z.object({
   name: z
     .string()
@@ -50,7 +48,6 @@ export default function ContactsPage() {
   const [expandedFaq, setExpandedFaq] = useState(null)
   const headerRef = useRef(null)
 
-  // Initialize react-hook-form with zod validation
   const {
     register,
     handleSubmit,
@@ -67,7 +64,6 @@ export default function ContactsPage() {
   })
 
   const onSubmit = async (data) => {
-    // Simulate API call
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500))
       toast({
@@ -76,7 +72,6 @@ export default function ContactsPage() {
         description: "Thank you for your message. We'll get back to you soon!",
         className: "bg-white text-gray-900 border border-gray-200 shadow-md"
       })
-      // Reset form
       reset()
     } catch (error) {
       toast({
@@ -118,16 +113,15 @@ export default function ContactsPage() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isFixed])
 
-  // Helper function to translate Tailwind padding to px based on width
+
   function getPaddingPx(isFixed) {
     if (isFixed) {
-      return 32 // py-8 = 2rem = 32px
+      return 32 
     } else {
       if (window.innerWidth >= 1024) {
-        // lg breakpoint in Tailwind is 1024px
-        return 128 // py-32 = 8rem = 128px
+        return 128 
       } else {
-        return 80 // py-20 = 5rem = 80px
+        return 80 
       }
     }
   }
@@ -161,7 +155,6 @@ export default function ContactsPage() {
 
       {/* Main Content */}
       <div className="mx-auto py-10">
-        {/* Contact Information Cards */}
         <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:py-24 md:py-24 py-12 overflow-x-auto sm:overflow-visible ps-4 md:ps-0 lg:px-8 lg:ms-0 mb-16 md:px-4 md:ms-4 scrollbar-hide lg:">
           {/* Email */}
           <div className="min-w-[380px] sm:min-w-0 lg:min-w-0 bg-cyan-700/15 rounded-3xl p-6">
@@ -204,7 +197,7 @@ export default function ContactsPage() {
             </address>
           </div>
 
-          {/* Hours */}
+          {/* Hour */}
           <div className="min-w-[380px] sm:min-w-0 lg:min-w-0 bg-cyan-700/15 rounded-3xl p-6">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
               <Clock className="h-8 w-8 text-cyan-700" />
@@ -221,7 +214,6 @@ export default function ContactsPage() {
           </div>
         </div>
 
-        {/* Contact Form and Map Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:mb-16 mb-10 lg:px-8 px-4 md:mx-0 ">
           {/* Contact Form */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 p-8">
@@ -335,7 +327,6 @@ export default function ContactsPage() {
           {/* Map */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden">
             <div className="h-full w-full relative">
-              {/* This is a placeholder for the map. In a real application, you would integrate with Google Maps or similar */}
               <div className="absolute inset-0 bg-gray-200">
                 <div className="h-full w-full flex items-center justify-center">
                     <GoogleMapComponent />
@@ -386,7 +377,6 @@ export default function ContactsPage() {
           </div>
         </div>
 
-        {/* Social Media and Live Chat */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 lg:px-8">
           {/* Social Media */}
           <div className="bg-white rounded-3xl border-2 border-gray-100 lg:p-8 px-4 py-6">

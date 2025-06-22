@@ -1,22 +1,21 @@
-import { useState, useEffect, useRef } from "react"
-import { Link, useLocation, useNavigate } from "react-router"
-import {
-  HomeIcon, MapIcon, ClipboardListIcon, UserIcon, MapPinIcon, SearchIcon, Ticket,
-  RollerCoaster,
-  Bell,
-  Hand,
-  BookIcon,
-  ServerIcon,
-  Bookmark,
-  Drama
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import HeptapodLogo from "@/assets/HeptapodLogo"
 import { useAttractions } from "@/contexts/AttractionsProvider"
 import { useServices } from "@/contexts/ServicesProvider"
 import { useShows } from "@/contexts/ShowsProvider"
-import HeptapodAll from "@/assets/HeptapodAll"
-import HeptapodLogo from "@/assets/HeptapodLogo"
-import Heptapod from "@/assets/Heptapod"
+import { cn } from "@/lib/utils"
+import {
+  Bell,
+  Bookmark,
+  ClipboardListIcon,
+  Drama,
+  HomeIcon, MapIcon,
+  MapPinIcon,
+  RollerCoaster,
+  SearchIcon, Ticket,
+  UserIcon
+} from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router"
 
 const suggestionsList = [
   { label: "Home", path: "/", icon: <HomeIcon className="w-4 h-4" /> },

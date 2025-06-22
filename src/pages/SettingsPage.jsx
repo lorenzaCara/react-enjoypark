@@ -20,7 +20,6 @@ export default function SettingsPage() {
   const [isFixed, setIsFixed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState({
-    // Notifiche
     pushNotifications: null,
     emailNotifications: true,
     smsNotifications: false,
@@ -29,13 +28,11 @@ export default function SettingsPage() {
     plannerUpdates: true,
     promotionalEmails: false,
 
-    // Privacy
     profileVisibility: "public",
     dataSharing: false,
     analyticsTracking: true,
     locationServices: true,
 
-    // App Preferences
     language: "it",
     autoSave: true,
     offlineMode: false,
@@ -129,8 +126,7 @@ export default function SettingsPage() {
         description: error.message || "Unable to save the setting.",
         variant: "destructive",
       });
-  
-      // rollback for local state
+
       setSettings(prev => ({
         ...prev,
         [key]: !value,
@@ -193,7 +189,6 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto px-4 pb-8">
-        {/* Header section */}
       <div className={`mx-auto py-4 ${isFixed ? "pt-24" : ""}`}>
         <div
           ref={headerRef}

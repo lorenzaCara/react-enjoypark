@@ -35,7 +35,7 @@ export default function HeptapodMapSVG() {
   const { shows, isLoading: showsLoading, error: showsError } = useShows()
 
   // Map state
-  const [currentView, setCurrentView] = useState("main") // "main" or "detail"
+  const [currentView, setCurrentView] = useState("main")
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [selectedPoint, setSelectedPoint] = useState(null)
@@ -51,7 +51,7 @@ export default function HeptapodMapSVG() {
   const isLoading = attractionsLoading || servicesLoading || showsLoading
   const error = attractionsError || servicesError || showsError
 
-  // Punti speciali hardcoded con mapping ai nomi delle location degli show
+  // Punti speciali 
   const specialPoints = [
     {
       id: "entrance",
@@ -66,7 +66,7 @@ export default function HeptapodMapSVG() {
       type: "stage",
       mapX: 35,
       mapY: 75,
-      location: "Neon Theater", // ← questo deve matchare esattamente
+      location: "Neon Theater", 
     },
     {
       id: "stage2",
@@ -90,7 +90,7 @@ export default function HeptapodMapSVG() {
       type: "stage",
       mapX: 25,
       mapY: 60,
-      location: "Galactic Theater", // nessuno spettacolo ha questo nome, potresti ignorarlo o aggiungerne uno
+      location: "Galactic Theater", 
     },
   ]
 
@@ -435,7 +435,7 @@ export default function HeptapodMapSVG() {
     return currentView === "main" ? services : []
   }
 
-  // Apply transform to map
+  // Transform alla mappa per gestire drag e zoom
   const mapStyle = {
     transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
     transformOrigin: "center center",
@@ -468,7 +468,6 @@ export default function HeptapodMapSVG() {
 
   return (
     <div className="px-4 py-12 lg:mx-4">
-      {/* Map Container */}
       <div className="relative w-full h-[80vh] bg-gradient-to-br from-gray-950 to-teal-900/50 rounded-3xl overflow-hidden mb-8">
         {/* Map Content */}
         <div ref={mapContainerRef} className="absolute inset-0 w-full h-full flex items-center justify-center">
