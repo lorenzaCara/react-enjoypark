@@ -18,7 +18,7 @@ export default function App() {
       const windowHeight = window.innerHeight;
       const scrollBottom = currentScrollY + windowHeight;
     
-      const nearFooter = scrollBottom >= footerTop - 20;
+      const nearFooter = scrollBottom >= footerTop ;
     
       if (nearFooter) {
         // Siamo vicini al footer: nascondi nav mobile
