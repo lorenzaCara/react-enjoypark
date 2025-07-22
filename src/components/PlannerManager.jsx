@@ -109,6 +109,15 @@ export default function PlannerManager() {
 
   const ticketPlanners = selectedTicket ? planners.filter((p) => p.ticketId === selectedTicket.id) : []
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) //reset ora a mezzanotte
+
+  const activePlanners = planners.filter((p) => {
+    const plannerDate = new Date(p.date)
+    plannerDate.setHours(0, 0, 0, 0) //reset ora a mezzanotte
+    return plannerDate >= today
+  })
+
   const getAvailableShows = (ticket) => {
     if (!ticket || !shows) return []
     const plannerDate = toDateOnly(ticket.validFor)
@@ -347,7 +356,7 @@ export default function PlannerManager() {
           <div className="min-w-[350px] flex-shrink-0 bg-white rounded-3xl border-2 border-gray-100 p-8 text-left transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <div className="text-4xl font-light text-gray-900 mb-2">
-                {planners.length}
+                {activePlanners.length}
               </div>
               <div className="w-10 h-10 bg-teal-500/30 rounded-full flex items-center justify-center">
                 <Ticket className="w-5 h-5 text-teal-700" />
